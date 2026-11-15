@@ -265,6 +265,7 @@ class AdhanService : Service() {
         stopPlayer()
         adhkarPhase = true
         startFg() // Benachrichtigung: „Adhkar läuft“
+        applyVolume(Prefs(this).adhkarVolume(if (prayer == P.FAJR) 0 else 1))
         if (!tryPlay(Uri.parse(uri), loop = false)) { finishAll(); return }
         handler.postDelayed(maxRunnable, MAX_ADHKAR_MS)
         // Klatschen stoppt auch das Adhkar

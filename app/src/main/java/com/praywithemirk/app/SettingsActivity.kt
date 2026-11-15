@@ -248,7 +248,7 @@ class SettingsActivity : Activity() {
             for (i in P.SALAH) {
                 addView(text(S.prayerNames[i][l] + "   " + S.prayerArabic[i], 15f, C.gold, Fonts.medium), lp(top = dp(12)))
                 addView(soundRow(i, prefs.prayerName(i) ?: S.useDefault[l]), lp(top = dp(4)))
-                addView(stepper("🔊 " + S.volume[l] + " (%)", prefs.volume(i), 0, 100, 10) { v -> prefs.setVolume(i, v) }, lp(top = dp(4)))
+                addView(volumeSlider(prefs.volume(i)) { v -> prefs.setVolume(i, v) }, lp(top = dp(4)))
             }
 
             // Adhkar-Audio nach Fajr/Maghrib
@@ -258,8 +258,10 @@ class SettingsActivity : Activity() {
             if (prefs.adhkarAudioOn) {
                 addView(text(S.adhkarMorning[l], 15f, C.gold, Fonts.medium), lp(top = dp(8)))
                 addView(soundRow(ADHKAR_SLOT, prefs.adhkarName(0) ?: S.adhkarNone[l]), lp(top = dp(4)))
+                addView(volumeSlider(prefs.adhkarVolume(0)) { v -> prefs.setAdhkarVolume(0, v) }, lp(top = dp(4)))
                 addView(text(S.adhkarEvening[l], 15f, C.gold, Fonts.medium), lp(top = dp(12)))
                 addView(soundRow(ADHKAR_SLOT + 1, prefs.adhkarName(1) ?: S.adhkarNone[l]), lp(top = dp(4)))
+                addView(volumeSlider(prefs.adhkarVolume(1)) { v -> prefs.setAdhkarVolume(1, v) }, lp(top = dp(4)))
                 addView(switchRow(S.adhkarAfterStop[l], prefs.adhkarAfterStop) { prefs.adhkarAfterStop = it }, lp(top = dp(8)))
                 addView(text(S.adhkarAfterStopInfo[l], 12f, C.muted, Fonts.light))
             }
@@ -573,6 +575,36 @@ class SettingsActivity : Activity() {
             }
             row.addView(v, LinearLayout.LayoutParams(0, -2, 1f).apply { if (i > 0) leftMargin = dp(8) })
         }
+        return row
+    }
+
+    /** Lautstärke als Ziehbalken (0–100 %, in 5er-Schritten), Wert rechts daneben. */
+    private fun volumeSlider(value: Int, onChange: (Int) -> Unit): View {
+        val l = prefs.lang
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, dp(2), 0, dp(2))
+        }
+        row.addView(text("🔊", 16f, C.cream, Fonts.regular).apply { contentDescription = S.volume[l] })
+        val valueView = text("$value %", 15f, C.gold, Fonts.medium, Gravity.END).apply { fontFeatureSettings = "tnum" }
+        val bar = android.widget.SeekBar(this).apply {
+            max = 20 // 5er-Schritte
+            progress = (value / 5).coerceIn(0, 20)
+            progressTintList = ColorStateList.valueOf(C.gold)
+            thumbTintList = ColorStateList.valueOf(C.gold)
+            progressBackgroundTintList = ColorStateList.valueOf(C.faint)
+            contentDescription = S.volume[l]
+            setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(sb: android.widget.SeekBar, p: Int, fromUser: Boolean) {
+                    valueView.text = "${p * 5} %"
+                    if (fromUser) onChange(p * 5)
+                }
+                override fun onStartTrackingTouch(sb: android.widget.SeekBar) {}
+                override fun onStopTrackingTouch(sb: android.widget.SeekBar) {}
+            })
+        }
+        row.addView(bar, LinearLayout.LayoutParams(0, dp(40), 1f).apply { leftMargin = dp(6) })
+        row.addView(valueView, LinearLayout.LayoutParams(dp(56), -2))
         return row
     }
 

@@ -94,6 +94,9 @@ class Prefs(context: Context) {
     /** Lautstärke des Gebetsrufs je Gebet in Prozent (0–100) der maximalen Wecker-Lautstärke. */
     fun volume(i: Int): Int = sp.getInt("volume_$i", 80)
     fun setVolume(i: Int, v: Int) = sp.edit().putInt("volume_$i", v.coerceIn(0, 100)).apply()
+    /** Lautstärke des Adhkar-Audios: [k] = 0 Morgen, 1 Abend (Prozent der Wecker-Lautstärke). */
+    fun adhkarVolume(k: Int): Int = sp.getInt("adhkar_volume_$k", 80)
+    fun setAdhkarVolume(k: Int, v: Int) = sp.edit().putInt("adhkar_volume_$k", v.coerceIn(0, 100)).apply()
 
     /** Schriftgröße der Startseite: 0 = normal, 1 = groß (Standard), 2 = sehr groß. */
     var mainScale: Int
