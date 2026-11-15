@@ -62,13 +62,22 @@
             android:parentActivityName=".MainActivity" />
 
         <activity
+            android:name=".AdhkarPickActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:taskAffinity="com.oeka.adhanclock.adhan" />
+
+        <activity
             android:name=".AdhanActivity"
             android:exported="false"
             android:launchMode="singleTop"
             android:excludeFromRecents="true"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
-            android:taskAffinity="com.praywithemirk.app.adhan" />
+            android:taskAffinity="com.oeka.adhanclock.adhan" />
 
         <service
             android:name=".AdhanService"

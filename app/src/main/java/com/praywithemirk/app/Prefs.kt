@@ -10,7 +10,7 @@ import java.time.ZonedDateTime
 class Prefs(context: Context) {
     private val appCtx: Context = context.applicationContext
     private val sp: SharedPreferences =
-        context.applicationContext.getSharedPreferences("praywithemirk", Context.MODE_PRIVATE)
+        context.applicationContext.getSharedPreferences("adhanclock", Context.MODE_PRIVATE)
 
     val hasLocation: Boolean get() = sp.contains("lat") && sp.contains("lng")
     var lat: Double
@@ -63,10 +63,15 @@ class Prefs(context: Context) {
     fun adhkarName(k: Int): String? = sp.getString("adhkar_name_$k", null)
     fun setAdhkarSound(k: Int, uri: String?, name: String?) =
         sp.edit().putString("adhkar_uri_$k", uri).putString("adhkar_name_$k", name).apply()
-    /** Adhkar direkt nach dem Gebetsruf abspielen (Schalter). */
-    var adhkarAudioOn: Boolean
-        get() = sp.getBoolean("adhkar_audio_on", true)
-        set(v) = sp.edit().putBoolean("adhkar_audio_on", v).apply()
+    /**
+     * Adhkar nach dem Gebetsruf (Fajr/Maghrib): 0 = aus, 1 = automatisch direkt im Anschluss,
+     * 2 = Auswahl-Fenster (30 s) mit Start-Knopf – dann kein automatisches Abspielen.
+     */
+    var adhkarMode: Int
+        get() = if (sp.contains("adhkar_mode")) sp.getInt("adhkar_mode", 1)
+                else if (sp.getBoolean("adhkar_audio_on", true)) 1 else 0
+        set(v) = sp.edit().putInt("adhkar_mode", v.coerceIn(0, 2)).apply()
+    val adhkarAudioOn: Boolean get() = adhkarMode == 1
     /** Adhkar auch abspielen, wenn der Gebetsruf vorzeitig gestoppt wird (sonst endet beides zusammen). */
     var adhkarAfterStop: Boolean
         get() = sp.getBoolean("adhkar_after_stop", true)

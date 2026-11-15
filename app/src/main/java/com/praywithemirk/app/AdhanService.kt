@@ -34,6 +34,9 @@ class AdhanService : Service() {
         const val ACTION_PLAY = "com.praywithemirk.app.action.PLAY"
         const val ACTION_STOP = "com.praywithemirk.app.action.STOP"
         const val ACTION_CLAP_ON = "com.praywithemirk.app.action.CLAP_ON"
+        const val ACTION_PLAY_ADHKAR = "com.praywithemirk.app.action.PLAY_ADHKAR"
+        const val EXTRA_URI = "uri"
+        private const val ID_ADHKAR_PICK = 41
         /** Broadcast an die sichtbaren Seiten: Anzahl erkannter Klatscher (Extra „n“). */
         const val ACTION_CLAP_COUNT = "com.praywithemirk.app.action.CLAP_COUNT"
         const val EXTRA_REASON = "reason"
@@ -65,6 +68,13 @@ class AdhanService : Service() {
                 // z. B. ForegroundServiceStartNotAllowedException, wenn kein exakter Alarm erlaubt ist
                 if (fromAlarm) Notifications.showPrayerWithSound(ctx, prayer)
             }
+        }
+
+        /** Adhkar direkt starten (aus dem Auswahl-Fenster). */
+        fun playAdhkar(ctx: Context, prayer: Int, uri: String) {
+            val i = Intent(ctx, AdhanService::class.java).setAction(ACTION_PLAY_ADHKAR)
+                .putExtra(AlarmScheduler.EXTRA_PRAYER, prayer).putExtra(EXTRA_URI, uri)
+            try { ctx.startForegroundService(i) } catch (_: Exception) {}
         }
 
         fun stop(ctx: Context, reason: String = R_BUTTON) {
@@ -106,6 +116,23 @@ class AdhanService : Service() {
             }
             ACTION_CLAP_ON -> {
                 if (playing) startClap()
+                return START_NOT_STICKY
+            }
+            ACTION_PLAY_ADHKAR -> {
+                val uri = intent.getStringExtra(EXTRA_URI)
+                if (uri == null) { stopSelf(); return START_NOT_STICKY }
+                handler.removeCallbacksAndMessages(null)
+                stopPlayer()
+                prayer = intent.getIntExtra(AlarmScheduler.EXTRA_PRAYER, P.FAJR)
+                finished = false
+                playing = true
+                clapUnavailable = false
+                Notifications.ensureChannels(this)
+                adhkarPhase = true
+                startFg()
+                startedAt = SystemClock.elapsedRealtime()
+                requestFocus(attrs)
+                startAdhkar(uri)
                 return START_NOT_STICKY
             }
         }
@@ -250,11 +277,13 @@ class AdhanService : Service() {
             val adhkar = prefs.adhkarFor(prayer)
             val stoppedByUser = reason == R_BUTTON || reason == R_CLAP || reason == R_NOTIFICATION
             val natural = reason == R_END || reason == R_TONE || reason == R_MAX
-            if (adhkar != null && prefs.adhkarAudioOn && (natural || (stoppedByUser && prefs.adhkarAfterStop))) {
+            if (adhkar != null && prefs.adhkarMode == 1 && (natural || (stoppedByUser && prefs.adhkarAfterStop))) {
                 startAdhkar(adhkar)
                 return
             }
             finishAll()
+            // Modus „Auswahl“: Fenster mit den passenden Adhkar für 30 Sekunden anbieten
+            if (prefs.adhkarMode == 2 && (prayer == P.FAJR || prayer == P.MAGHRIB)) showAdhkarPicker()
         } else {
             finishAll()
         }
@@ -270,6 +299,29 @@ class AdhanService : Service() {
         handler.postDelayed(maxRunnable, MAX_ADHKAR_MS)
         // Klatschen stoppt auch das Adhkar
         if (clapActive) newDetector()
+    }
+
+    private fun showAdhkarPicker() {
+        val i = Intent(this, AdhkarPickActivity::class.java)
+            .putExtra(AlarmScheduler.EXTRA_PRAYER, prayer)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        if (App.visibleActivities > 0) {
+            try { startActivity(i); return } catch (_: Exception) {}
+        }
+        // App nicht sichtbar: Benachrichtigung mit Vollbild-Fenster, verschwindet nach 30 s
+        try {
+            val l = Prefs(this).lang
+            val pi = PendingIntent.getActivity(this, 5, i, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val n = Notifications.builder(this, Notifications.CH_ADHAN)
+                .setContentTitle(S.adhkarPickTitle[l])
+                .setContentText(if (prayer == P.FAJR) S.adhkarPickMorning[l] else S.adhkarPickEvening[l])
+                .setContentIntent(pi)
+                .setFullScreenIntent(pi, true)
+                .setAutoCancel(true)
+                .setTimeoutAfter(AdhkarPickActivity.SHOW_MS)
+                .build()
+            getSystemService(android.app.NotificationManager::class.java).notify(ID_ADHKAR_PICK, n)
+        } catch (_: Exception) {}
     }
 
     private fun saveEnd(reason: String) {

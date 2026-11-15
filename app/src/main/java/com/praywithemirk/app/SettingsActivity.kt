@@ -254,16 +254,19 @@ class SettingsActivity : Activity() {
             // Adhkar-Audio nach Fajr/Maghrib
             addView(label(S.adhkarAudioSection[l]), lp(top = dp(18)))
             addView(text(S.adhkarAudioInfo[l], 12f, C.muted, Fonts.light))
-            addView(switchRow(S.adhkarAudioOn[l], prefs.adhkarAudioOn) { prefs.adhkarAudioOn = it; render() }, lp(top = dp(6)))
-            if (prefs.adhkarAudioOn) {
+            addView(segmented(S.adhkarModes.map { it[l] }, prefs.adhkarMode) { prefs.adhkarMode = it; render() }, lp(top = dp(8)))
+            addView(text(S.adhkarModeInfo[prefs.adhkarMode][l], 12f, C.teal, Fonts.light), lp(top = dp(4)))
+            if (prefs.adhkarMode != 0) {
                 addView(text(S.adhkarMorning[l], 15f, C.gold, Fonts.medium), lp(top = dp(8)))
                 addView(soundRow(ADHKAR_SLOT, prefs.adhkarName(0) ?: S.adhkarNone[l]), lp(top = dp(4)))
                 addView(volumeSlider(prefs.adhkarVolume(0)) { v -> prefs.setAdhkarVolume(0, v) }, lp(top = dp(4)))
                 addView(text(S.adhkarEvening[l], 15f, C.gold, Fonts.medium), lp(top = dp(12)))
                 addView(soundRow(ADHKAR_SLOT + 1, prefs.adhkarName(1) ?: S.adhkarNone[l]), lp(top = dp(4)))
                 addView(volumeSlider(prefs.adhkarVolume(1)) { v -> prefs.setAdhkarVolume(1, v) }, lp(top = dp(4)))
-                addView(switchRow(S.adhkarAfterStop[l], prefs.adhkarAfterStop) { prefs.adhkarAfterStop = it }, lp(top = dp(8)))
-                addView(text(S.adhkarAfterStopInfo[l], 12f, C.muted, Fonts.light))
+                if (prefs.adhkarMode == 1) {
+                    addView(switchRow(S.adhkarAfterStop[l], prefs.adhkarAfterStop) { prefs.adhkarAfterStop = it }, lp(top = dp(8)))
+                    addView(text(S.adhkarAfterStopInfo[l], 12f, C.muted, Fonts.light))
+                }
             }
 
             addView(stepper(S.reminderBefore[l], prefs.reminderMinutes, 0, 60, 5) {
@@ -450,7 +453,7 @@ class SettingsActivity : Activity() {
                 lp(top = dp(20))
             )
         }
-        col.addView(text("Pray with Emir K. · 1.0", 11f, C.faint, Fonts.light, Gravity.CENTER), lp(top = dp(8)))
+        col.addView(text("Adhan-Clock-oeka · " + (try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { "" }), 11f, C.faint, Fonts.light, Gravity.CENTER), lp(top = dp(8)))
 
         scroll.post { scroll.scrollTo(0, scrollY) }
     }

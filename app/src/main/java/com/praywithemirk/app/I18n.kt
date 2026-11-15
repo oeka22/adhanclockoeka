@@ -113,9 +113,9 @@ object S {
     )
     val openSettings = T("Erlauben", "İzin ver", "Allow")
     val batteryInfo = T(
-        "Tipp: Akku-Optimierung für Pray with Emir K. deaktivieren, damit der Gebetsruf zuverlässig kommt.",
-        "İpucu: Ezanın güvenilir okunması için Pray with Emir K. uygulamasında pil optimizasyonunu kapatın.",
-        "Tip: disable battery optimisation for Pray with Emir K. so the adhan is reliable."
+        "Tipp: Akku-Optimierung für Adhan-Clock-oeka deaktivieren, damit der Gebetsruf zuverlässig kommt.",
+        "İpucu: Ezanın güvenilir okunması için Adhan-Clock-oeka uygulamasında pil optimizasyonunu kapatın.",
+        "Tip: disable battery optimisation for Adhan-Clock-oeka so the adhan is reliable."
     )
     val locating = T("Standort wird ermittelt …", "Konum belirleniyor …", "Locating …")
     val locationFailed = T("Standort nicht gefunden.", "Konum bulunamadı.", "Location not found.")
@@ -257,6 +257,20 @@ object S {
         "Right after the adhan at Fajr (morning adhkar) and Maghrib (evening adhkar) an adhkar audio is played – as MP3 file, link or own recording, just like the adhan. Stop it like the adhan (stop button, notification, clap 3×)."
     )
     val adhkarAudioOn = T("Adhkar nach dem Gebetsruf abspielen", "Ezandan sonra ezkârı çal", "Play adhkar after the adhan")
+    val adhkarModes = listOf(T("Aus", "Kapalı", "Off"), T("Automatisch", "Otomatik", "Automatic"), T("Auswahl", "Seçim", "Choose"))
+    val adhkarModeInfo = listOf(
+        T("Keine Adhkar-Wiedergabe nach dem Gebetsruf.", "Ezandan sonra ezkâr çalınmaz.", "No adhkar playback after the adhan."),
+        T("Das gewählte Adhkar startet direkt nach dem Gebetsruf.", "Seçilen ezkâr ezandan hemen sonra başlar.", "The chosen adhkar starts right after the adhan."),
+        T("Nach dem Gebetsruf erscheint 30 Sekunden lang ein Fenster mit allen passenden Adhkar – eins antippen zum Starten. Es wird nichts automatisch abgespielt.",
+          "Ezandan sonra 30 saniye boyunca uygun tüm ezkârların listesi görünür – başlatmak için birine dokun. Otomatik çalma olmaz.",
+          "After the adhan a window with all matching adhkar is shown for 30 seconds – tap one to start. Nothing plays automatically.")
+    )
+    val adhkarPickTitle = T("Adhkar abspielen?", "Ezkâr çalınsın mı?", "Play adhkar?")
+    val adhkarPickMorning = T("Morgen-Adhkar", "Sabah ezkârı", "Morning adhkar")
+    val adhkarPickEvening = T("Abend-Adhkar", "Akşam ezkârı", "Evening adhkar")
+    val closesIn = T("Schließt in %d s", "%d sn içinde kapanır", "Closes in %d s")
+    val close = T("Schließen", "Kapat", "Close")
+    val adhkarCustom = T("Eigene Auswahl", "Kendi seçimin", "Own choice")
     val adhkarMorning = T("Morgen-Adhkar (nach Fajr)", "Sabah ezkârı (Fecir sonrası)", "Morning adhkar (after Fajr)")
     val adhkarEvening = T("Abend-Adhkar (nach Maghrib)", "Akşam ezkârı (Mağrib sonrası)", "Evening adhkar (after Maghrib)")
     val adhkarNone = T("kein Audio gewählt", "ses seçilmedi", "no audio chosen")

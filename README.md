@@ -26,7 +26,7 @@ zur Gebetszeit, Sunnah-Adhkar zu jedem Gebet und zweimal täglich einem Hadith b
 - **Gebetsruf**: Die Glocke wird 10 Sekunden gezeigt, danach geht es zurück zur Startseite; der Gebetsruf läuft bis zum Ende weiter.
   Stoppen jederzeit über die Leiste „Gebetsruf stoppen“ auf der Startseite, die Benachrichtigung oder 3× Klatschen.
 - **7 Gebetsrufe in der App enthalten** (Mishary Rashid Alafasy 1–3, Hafiz Mustafa Özcan, Ahmad al-Nafees, Mansour al-Zahrani, Karl Jenkins) – auswählbar unter „Auswählen › In der App enthalten“.
-- **Adhkar nach dem Gebetsruf**: nach Fajr (Morgen) und Maghrib (Abend) direkt im Anschluss ein Adhkar-Audio (11 Adhkar-Aufnahmen in der App enthalten: 5 Morgen, 6 Abend – oder Datei, Link, Aufnahme); per Schalter an/aus, optional auch nach vorzeitigem Stopp.
+- **Adhkar nach dem Gebetsruf** (Aus / Automatisch / Auswahl – bei „Auswahl“ erscheint 30 s lang ein Fenster mit allen passenden Adhkar zum Starten): nach Fajr (Morgen) und Maghrib (Abend) direkt im Anschluss ein Adhkar-Audio (11 Adhkar-Aufnahmen in der App enthalten: 5 Morgen, 6 Abend – oder Datei, Link, Aufnahme); per Schalter an/aus, optional auch nach vorzeitigem Stopp.
 - **Klatschen** funktioniert während des ganzen Gebetsrufs (Erkennung im Dienst), auch nachdem die Glocke geschlossen ist.
 - **Nachtmodus** (Einstellungen): Startseite nachts stark abdunkeln – nach Uhrzeit oder per Lichtsensor (mit Live-Anzeige in Lux und einstellbarer Grenze), in drei Stufen.
 - In den Einstellungen steht beim Gebetsruf, wie lange der letzte lief und warum er endete (zur Fehlersuche).

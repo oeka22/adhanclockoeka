@@ -8,11 +8,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.praywithemirk.app"
+        applicationId = "com.oeka.adhanclock"
         minSdk = 26
         targetSdk = 35
-        versionCode = 12
-        versionName = "7.2"
+        versionCode = 13
+        versionName = "7.3"
     }
 
     // Fester Signaturschlüssel: jede neue Version lässt sich über die alte installieren

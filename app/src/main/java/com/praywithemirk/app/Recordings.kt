@@ -17,7 +17,7 @@ object Recordings {
     }
 
     private fun dir(ctx: Context) = File(ctx.filesDir, "recordings").apply { mkdirs() }
-    private fun sp(ctx: Context) = ctx.getSharedPreferences("praywithemirk", Context.MODE_PRIVATE)
+    private fun sp(ctx: Context) = ctx.getSharedPreferences("adhanclock", Context.MODE_PRIVATE)
 
     fun list(ctx: Context): List<Rec> {
         val arr = try { JSONArray(sp(ctx).getString("recordings", "[]")) } catch (_: Exception) { JSONArray() }

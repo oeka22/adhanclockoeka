@@ -19,7 +19,7 @@ object CustomSources {
     class Source(val id: String, val name: String, val url: String, val enabled: Boolean, val count: Int, val fetchedAt: Long)
     class Item(val arabic: String, val de: String, val tr: String, val en: String, val ref: String, val translit: String = "")
 
-    private fun sp(ctx: Context) = ctx.getSharedPreferences("praywithemirk", Context.MODE_PRIVATE)
+    private fun sp(ctx: Context) = ctx.getSharedPreferences("adhanclock", Context.MODE_PRIVATE)
     private fun dir(ctx: Context) = File(ctx.filesDir, "sources").apply { mkdirs() }
 
     fun list(ctx: Context): List<Source> {
