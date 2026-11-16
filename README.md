@@ -3,6 +3,17 @@
 Ruhige Gebetsuhr mit großer Uhr, Countdown-Ring bis zum nächsten Gebet, Gebetsruf (Adhan)
 zur Gebetszeit, Sunnah-Adhkar zu jedem Gebet und zweimal täglich einem Hadith bzw. einer Koranstelle.
 
+## Neu in Version 8.0
+- **Einrichtungs-Assistent** beim ersten Start: Sprache → Standort/Moschee → Gebetsruf & Lautstärke → Design (überspringbar, später unter Einstellungen › System erneut startbar).
+- **Einstellungen als Übersicht** mit 6 Themen: Anzeige & Wanduhr · Gebetszeiten · Gebetsruf · Adhkar · Inhalte & Quellen · System.
+- **Gebetsruf**: eine Karte je Gebet (an/aus, Ton, Lautstärke); Aufnahmen auf derselben Seite.
+- **Adhkar aus der Auswahl**: nach dem Antippen Wiedergabe-Fenster mit großem Stopp-Knopf und Restzeit.
+- **Standard bei Neuinstallation**: Design Mashrabiya · Schwarz, Gebetsruf Hafiz Mustafa Özcan, Adhkar aus.
+- **Tag/Nacht-Design** (Design-Seite): automatischer Wechsel ab Fajr bzw. Maghrib.
+- **Knöpfe auf der Startseite** wahlweise nur bei Berührung (10 s).
+- **Hadith-Bereich**: Schriftgröße in 4 Stufen; bei Klassisch & Co. feste Größe, langer Text per Wischen scrollbar.
+- **Timer** füllt seinen Bereich immer mit der größtmöglichen Schrift.
+
 ## Funktionen
 - **Hauptbildschirm**: Ort, Datum (gregorianisch + Hijri) und Uhrzeit in einer Kopfzeile; darunter links der
   Ring mit nächstem Gebet, großer Gebetszeit und Countdown, rechts daneben der Tagesimpuls (Hadith/Sure).

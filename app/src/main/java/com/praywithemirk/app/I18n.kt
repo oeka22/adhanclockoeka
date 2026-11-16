@@ -280,6 +280,64 @@ object S {
         "Açık: Ezanı durduran hemen ardından ezkârı duyar. Kapalı: Durdur, ezanı ve ezkârı birlikte bitirir.",
         "On: stopping the adhan starts the adhkar right away. Off: stop ends adhan and adhkar together."
     )
+    // Einstellungen: Übersicht und Unterseiten
+    val pageDisplay = T("Anzeige & Wanduhr", "Görünüm ve duvar saati", "Display & wall clock")
+    val pageTimes = T("Gebetszeiten", "Namaz vakitleri", "Prayer times")
+    val pageAdhan = T("Gebetsruf", "Ezan", "Adhan")
+    val pageAdhkar = T("Adhkar", "Ezkâr", "Adhkar")
+    val pageContent = T("Inhalte & Quellen", "İçerik ve kaynaklar", "Content & sources")
+    val pageSystem = T("System", "Sistem", "System")
+    val pageTitles = listOf(pageDisplay, pageTimes, pageAdhan, pageAdhkar, pageContent, pageSystem)
+    val pageHints = listOf(
+        T("Sprache, Arabisch, Umschrift, Hadith-Schrift, Knöpfe, Design, Nachtmodus", "Dil, Arapça, okunuş, hadis yazısı, düğmeler, tasarım, gece modu", "Language, Arabic, transliteration, hadith font, buttons, design, night mode"),
+        T("Standort, Moschee-Kalender, Berechnung, Korrekturen", "Konum, cami takvimi, hesaplama, düzeltmeler", "Location, mosque calendar, calculation, corrections"),
+        T("Ton und Lautstärke je Gebet, Erinnerung, Klatschen, Aufnahmen", "Vakit başına ses ve seviye, hatırlatma, alkış, kayıtlar", "Sound and volume per prayer, reminder, clapping, recordings"),
+        T("Morgen- und Abend-Adhkar nach dem Gebetsruf", "Ezandan sonra sabah ve akşam ezkârı", "Morning and evening adhkar after the adhan"),
+        T("Hadith- und Koran-Quellen, eigene Quellen", "Hadis ve Kur'an kaynakları, kendi kaynaklar", "Hadith and Quran sources, own sources"),
+        T("Berechtigungen, Akku, Diagnose, Einrichtung, Version", "İzinler, pil, teşhis, kurulum, sürüm", "Permissions, battery, diagnosis, setup, version"),
+    )
+    val hadithSize = T("Schriftgröße Hadith/Sure", "Hadis/sure yazı boyutu", "Hadith/surah font size")
+    val hadithSizes = listOf(T("Klein", "Küçük", "Small"), T("Normal", "Normal", "Normal"), T("Groß", "Büyük", "Large"), T("Sehr groß", "Çok büyük", "Very large"))
+    val buttonsMode = T("Knöpfe auf der Startseite", "Ana ekrandaki düğmeler", "Buttons on the home screen")
+    val buttonsModes = listOf(T("Immer sichtbar", "Hep görünür", "Always visible"), T("Bei Berührung", "Dokununca", "On touch"))
+    val buttonsInfo = T(
+        "„Bei Berührung“: Adhkar, Qibla, Anleitung und Einstellungen sind ausgeblendet; ein Tippen auf den Bildschirm zeigt sie 10 Sekunden lang.",
+        "„Dokununca“: Ezkâr, Kıble, Rehber ve Ayarlar gizlidir; ekrana dokunmak onları 10 saniye gösterir.",
+        "“On touch”: Adhkar, Qibla, Guide and Settings are hidden; tapping the screen shows them for 10 seconds."
+    )
+    val diagnosis = T("Diagnose & Einrichtung", "Teşhis ve kurulum", "Diagnosis & setup")
+    val setupAgain = T("Einrichtungs-Assistent erneut starten", "Kurulum sihirbazını yeniden başlat", "Run the setup assistant again")
+    val stopAdhkar = T("Adhkar stoppen", "Ezkârı durdur", "Stop adhkar")
+    val nowPlaying = T("Läuft", "Çalıyor", "Playing")
+    val remainingFmt = T("noch %s", "kalan %s", "%s left")
+    val minimize = T("Ausblenden", "Gizle", "Hide")
+    // Tag/Nacht-Design
+    val dayNight = T("Tag/Nacht-Wechsel", "Gündüz/gece değişimi", "Day/night switch")
+    val dayNightInfo = T(
+        "Automatisch wechseln: ab Fajr das Tag-Design, ab Maghrib das Nacht-Design. Ist der Wechsel aus, gilt das unten gewählte Design.",
+        "Otomatik değişim: Fecirden itibaren gündüz tasarımı, Mağribden itibaren gece tasarımı. Kapalıysa aşağıda seçilen tasarım geçerlidir.",
+        "Switch automatically: from Fajr the day design, from Maghrib the night design. When off, the design chosen below applies."
+    )
+    val dayDesign = T("Tag-Design", "Gündüz tasarımı", "Day design")
+    val nightDesign = T("Nacht-Design", "Gece tasarımı", "Night design")
+    // Einrichtungs-Assistent
+    val setupTitle = T("Willkommen", "Hoş geldiniz", "Welcome")
+    val setupSteps = listOf(T("Sprache", "Dil", "Language"), T("Standort", "Konum", "Location"), T("Gebetsruf", "Ezan", "Adhan"), T("Design", "Tasarım", "Design"))
+    val setupLocInfo = T("Für genaue Gebetszeiten wird dein Standort benötigt. Alternativ kannst du den Kalender deiner Moschee verwenden.",
+        "Doğru vakitler için konumun gerekir. Alternatif olarak camiinin takvimini kullanabilirsin.",
+        "Accurate times need your location. Alternatively you can use your mosque's calendar.")
+    val setupLocate = T("Standort automatisch ermitteln", "Konumu otomatik bul", "Detect location automatically")
+    val setupMosque = T("Moschee-Kalender / Stadt wählen …", "Cami takvimi / şehir seç …", "Choose mosque calendar / city …")
+    val setupAdhanInfo = T("Wähle den Gebetsruf und die Lautstärke für alle Gebete. Später kannst du beides je Gebet ändern.",
+        "Tüm vakitler için ezanı ve ses seviyesini seç. Sonra her vakit için ayrı değiştirebilirsin.",
+        "Choose the adhan and volume for all prayers. You can change both per prayer later.")
+    val setupDesignInfo = T("Wähle das Aussehen. Du kannst es jederzeit unter Einstellungen › Anzeige & Wanduhr ändern.",
+        "Görünümü seç. İstediğin zaman Ayarlar › Görünüm ve duvar saati altında değiştirebilirsin.",
+        "Choose the look. You can change it any time under Settings › Display & wall clock.")
+    val next = T("Weiter", "İleri", "Next")
+    val back = T("Zurück", "Geri", "Back")
+    val skip = T("Überspringen", "Atla", "Skip")
+    val finish = T("Fertig", "Bitti", "Done")
     val stopAdhan = T("Gebetsruf stoppen", "Ezanı durdur", "Stop adhan")
     // Nachtmodus
     val nightSection = T("Nachtmodus (Bildschirm dimmen)", "Gece modu (ekranı karart)", "Night mode (dim the screen)")

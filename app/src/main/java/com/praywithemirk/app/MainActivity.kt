@@ -64,6 +64,11 @@ class MainActivity : Activity() {
     private var adhanBar: View? = null
     private var adhanClapInfo: TextView? = null
     private var adhanBarTitle: TextView? = null
+    private var adhanStopButton: TextView? = null
+    private var askedPermissions = false
+    // Knöpfe (Adhkar, Qibla, Anleitung, Einstellungen) – bei Einstellung „bei Berührung“ ausgeblendet
+    private val actionViews = mutableListOf<View>()
+    private val hideActions = Runnable { setActionsVisible(false) }
 
     private var builtKey: String = ""
     private var wide = false
@@ -87,7 +92,8 @@ class MainActivity : Activity() {
         dimmer = Dimmer(this)
         Notifications.ensureChannels(this)
         buildUi()
-        askInitialPermissions()
+        if (!prefs.setupDone) startActivity(Intent(this, SetupActivity::class.java))
+        else { askedPermissions = true; askInitialPermissions() }
     }
 
     override fun onResume() {
@@ -101,6 +107,7 @@ class MainActivity : Activity() {
         CustomSources.refreshStale(this)
         if (prefs.useMosque) MosqueCalendar.refreshIfStale(this)
         dimmer.start(prefs)
+        if (prefs.setupDone && !askedPermissions) { askedPermissions = true; askInitialPermissions() }
         val cf = android.content.IntentFilter(AdhanService.ACTION_CLAP_COUNT)
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(clapReceiver, cf, android.content.Context.RECEIVER_NOT_EXPORTED)
         else @Suppress("UnspecifiedRegisterReceiverFlag") registerReceiver(clapReceiver, cf)
@@ -122,7 +129,7 @@ class MainActivity : Activity() {
         refreshAll()
     }
 
-    private fun uiKey() = "${prefs.lang.id}|${prefs.theme.id}|${prefs.style.id}|${prefs.skin}|${resources.configuration.screenWidthDp}|${prefs.mainScale}|${prefs.showArabic}|${resources.configuration.screenHeightDp}"
+    private fun uiKey() = "${prefs.lang.id}|${prefs.theme.id}|${prefs.style.id}|${prefs.activeSkin()}|${prefs.hadithSize}|${prefs.buttonsMode}|${resources.configuration.screenWidthDp}|${prefs.mainScale}|${prefs.showArabic}|${resources.configuration.screenHeightDp}"
 
     // ---------------------------------------------------------------- Aufbau
 
@@ -132,6 +139,8 @@ class MainActivity : Activity() {
         builtKey = uiKey()
         impulseKey = ""
         segBar = null; atLabel = null
+        actionViews.clear()
+        handler.removeCallbacks(hideActions)
         lineMode = C.skin?.hero == Hero.LINE
         if (lineMode) { buildLineUi(); return }
 
@@ -219,7 +228,7 @@ class MainActivity : Activity() {
             includeFontPadding = false
             fontFeatureSettings = "tnum"
             maxLines = 1
-            setAutoSizeTextTypeUniformWithConfiguration(10, (48f * k * mul[2]).toInt().coerceAtLeast(12), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+            setAutoSizeTextTypeUniformWithConfiguration(10, 400, 1, android.util.TypedValue.COMPLEX_UNIT_SP) // so groß wie der Bereich erlaubt
             if (hero == Hero.FLAP) { background = roundRect(col("#222222"), dp(6).toFloat()); letterSpacing = 0.12f }
             if (hero == Hero.SOFT && skin != null) setShadowLayer(dp(14).toFloat(), 0f, 0f, alpha(col(skin.alt), 120))
         }
@@ -254,9 +263,17 @@ class MainActivity : Activity() {
         right.addView(dateView, lp(top = dp(2)))
         right.addView(hijriView)
 
+        // Hadith/Sure: feste Höhe bis zur Unterkante der Grafik, bei langem Text per Wischen scrollbar
         impulseBox = card(if (wide) 20 else 12)
-        right.addView(impulseBox, lp(top = dp(10)))
-        main.addView(right, LinearLayout.LayoutParams(0, -2, 1f).apply { leftMargin = dp(if (wide) 20 else 10) })
+        val impulseScroll = ScrollView(this).apply {
+            isVerticalScrollBarEnabled = true
+            isFillViewport = true
+            addView(impulseBox)
+            // im äußeren Scrollbereich: Wischen hier dem Hadith-Bereich überlassen
+            setOnTouchListener { v, _ -> v.parent.requestDisallowInterceptTouchEvent(canScrollVertically(1) || canScrollVertically(-1)); false }
+        }
+        right.addView(impulseScroll, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(10) })
+        main.addView(right, LinearLayout.LayoutParams(0, dp(ringDp), 1f).apply { leftMargin = dp(if (wide) 20 else 10) })
         col.addView(main)
 
         bannerBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -299,9 +316,11 @@ class MainActivity : Activity() {
         }
         actions.addView(settingsTile, LinearLayout.LayoutParams(0, -1, 1f).apply { leftMargin = dp(10) })
         col.addView(actions, lp(top = dp(14)))
+        actionViews.add(actions)
 
         attachOverlays(root)
         setContentView(root)
+        if (prefs.buttonsMode == 1) actionViews.forEach { it.alpha = 0f; it.visibility = View.INVISIBLE }
     }
 
     // ---------------------------------------------------------------- Designs Fanus / Mashrabiya
@@ -401,7 +420,7 @@ class MainActivity : Activity() {
             fontFeatureSettings = "tnum"
             maxLines = 1
             letterSpacing = if (wide) -0.02f else -0.04f
-            setAutoSizeTextTypeUniformWithConfiguration(12, timerSp.toInt().coerceAtLeast(13), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+            setAutoSizeTextTypeUniformWithConfiguration(12, 600, 1, android.util.TypedValue.COMPLEX_UNIT_SP) // so groß wie der Bereich erlaubt
             if (!sk.plain) setShadowLayer(dp(18f * k).toFloat(), 0f, 0f, alpha(lamp, if (C.light) 120 else 150))
         }
         center.addView(bigValue, LinearLayout.LayoutParams(-1, dp(timerSp * 0.98f)))
@@ -454,15 +473,18 @@ class MainActivity : Activity() {
             val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             pills.forEachIndexed { i, v -> r.addView(v, LinearLayout.LayoutParams(0, ph, 1f).apply { if (i > 0) leftMargin = gap }) }
             col.addView(r, lp(top = dp(14f * k)))
+            actionViews.add(r)
         } else {
             for (rr in 0..1) {
                 val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
                 for (cc in 0..1) r.addView(pills[rr * 2 + cc], LinearLayout.LayoutParams(0, ph, 1f).apply { if (cc > 0) leftMargin = gap })
                 col.addView(r, lp(top = if (rr == 0) dp(14f * k) else gap))
+                actionViews.add(r)
             }
         }
         attachOverlays(root)
         setContentView(root)
+        if (prefs.buttonsMode == 1) actionViews.forEach { it.alpha = 0f; it.visibility = View.INVISIBLE }
     }
 
     /** Gebetszeiten für Fanus/Mashrabiya: Kacheln (Querformat) oder Zeilen (Hochformat); Namen passen sich der Breite an. */
@@ -520,7 +542,7 @@ class MainActivity : Activity() {
     private fun buildLineImpulse(evening: Boolean, item: DailyItem?) {
         val l = prefs.lang
         val k = lineK
-        val s = if (wide) k else k * 0.9f
+        val s = (if (wide) k else k * 0.9f) * prefs.hadithFactor
         impulseBox.removeAllViews()
         impulseBox.addView(text("۞  " + (if (evening) S.eveningImpulse[l] else S.morningImpulse[l]).uppercase(),
             (if (wide) 15f else 10f) * s, C.gold, Fonts.bold).apply { letterSpacing = 0.16f })
@@ -533,6 +555,26 @@ class MainActivity : Activity() {
         if (item.arabic.isNotBlank() && prefs.showArabic) impulseBox.addView(arabic(item.arabic, (if (wide) 30f else 18f) * s), lp(top = dp(8f * s)))
         if (prefs.showTranslit && item.translit != null) impulseBox.addView(text(item.translit, (if (wide) 17f else 12f) * s, C.teal, Fonts.italic), lp(top = dp(6f * s)))
         impulseBox.addView(text("— " + item.source, (if (wide) 16f else 11f) * s, C.muted, Fonts.medium, Gravity.END), lp(top = dp(6f * s)))
+    }
+
+    // ---------------------------------------------------------------- Knöpfe bei Berührung
+
+    private fun setActionsVisible(show: Boolean) {
+        val target = if (show) 1f else 0f
+        actionViews.forEach { v ->
+            if (show) v.visibility = View.VISIBLE
+            v.animate().alpha(target).setDuration(250).withEndAction { if (!show) v.visibility = View.INVISIBLE }.start()
+        }
+    }
+
+    override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
+        if (prefs.buttonsMode == 1 && ev.actionMasked == android.view.MotionEvent.ACTION_DOWN && actionViews.isNotEmpty()) {
+            val hidden = actionViews.first().visibility != View.VISIBLE
+            handler.removeCallbacks(hideActions)
+            handler.postDelayed(hideActions, 10_000)
+            if (hidden) { setActionsVisible(true); return true } // erstes Tippen blendet nur ein
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     // ---------------------------------------------------------------- Gebetsruf-Leiste & Nachtmodus
@@ -550,7 +592,8 @@ class MainActivity : Activity() {
         }
         adhanBarTitle = text("🔔  " + S.adhanPlaying[l], 15f, C.cream, Fonts.medium, Gravity.CENTER)
         bar.addView(adhanBarTitle)
-        bar.addView(pill("■  " + S.stopAdhan[l], filled = true) { AdhanService.stop(this, AdhanService.R_BUTTON) }.apply {
+        adhanStopButton = pill("■  " + S.stopAdhan[l], filled = true) { AdhanService.stop(this, AdhanService.R_BUTTON) }
+        bar.addView(adhanStopButton!!.apply {
             textSize = 17f
             setPadding(dp(28), dp(12), dp(28), dp(12))
         }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(8) })
@@ -570,6 +613,7 @@ class MainActivity : Activity() {
         val playing = AdhanService.playing
         adhanBar?.visibility = if (playing) View.VISIBLE else View.GONE
         adhanBarTitle?.text = "🔔  " + (if (AdhanService.adhkarPhase) S.adhkarPlaying[l] else S.adhanPlaying[l])
+        adhanStopButton?.text = "■  " + (if (AdhanService.adhkarPhase) S.stopAdhkar[l] else S.stopAdhan[l])
         val micOk = prefs.clapToStop && checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
         if (playing && micOk) {
             AdhanService.enableClap(this)
@@ -740,13 +784,13 @@ class MainActivity : Activity() {
         val l = prefs.lang
         val times = prefs.timesFor(now.toLocalDate(), now.zone)
         val (evening, item) = DailyContent.current(now, times[P.FAJR], times[P.MAGHRIB], { prefs.allowed(it.source) }, CustomSources.enabledItems(this))
-        val key = "${l.id}|${prefs.showTranslit}|${prefs.showArabic}|$evening|${item?.arabic?.hashCode()}|${item?.meaning?.de?.hashCode()}"
+        val key = "${l.id}|${prefs.showTranslit}|${prefs.showArabic}|${prefs.hadithSize}|$evening|${item?.arabic?.hashCode()}|${item?.meaning?.de?.hashCode()}"
         if (key == impulseKey) return
         impulseKey = key
         if (lineMode) { buildLineImpulse(evening, item); return }
 
         // Wanduhr/Tablet: Schrift wächst mit dem Platz; Handy hochkant: etwas kompakter (wenig Breite neben dem Ring)
-        val s = if (wide) (ringDp / 260f).coerceIn(1.2f, 2.0f) * fs.coerceAtMost(1.3f) else 0.85f * fs.coerceAtMost(1.2f)
+        val s = (if (wide) (ringDp / 260f).coerceIn(1.2f, 2.0f) * fs.coerceAtMost(1.3f) else 0.85f * fs.coerceAtMost(1.2f)) * prefs.hadithFactor
         impulseBox.removeAllViews()
         impulseBox.addView(
             text((if (evening) S.eveningImpulse[l] else S.morningImpulse[l]).uppercase(), 10f * s, C.gold, Fonts.bold)
@@ -814,6 +858,7 @@ class MainActivity : Activity() {
             }
         }
 
+        if (now.second == 0 && prefs.dayNightOn && builtKey != uiKey()) { buildUi(); refreshAll(); return }
         if (now.second == 0) {
             dateView.text = S.gregorian(now.toLocalDate(), l)
             hijriView.text = S.hijri(now.toLocalDate(), prefs.hijriOffset, l)

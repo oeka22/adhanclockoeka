@@ -45,12 +45,13 @@ class Prefs(context: Context) {
     fun setAdhanEnabled(i: Int, v: Boolean) = sp.edit().putBoolean("adhan_$i", v).apply()
 
     /** Standard-Gebetsruf für alle Gebete (content:// oder file://). */
+    /** Neuinstallation: eingebauter Gebetsruf Hafiz Mustafa Özcan. Leerer Text = bewusst der Weckton des Geräts. */
     var adhanUri: String?
-        get() = sp.getString("adhan_uri", null)
-        set(v) = sp.edit().putString("adhan_uri", v).apply()
+        get() = (if (sp.contains("adhan_uri")) sp.getString("adhan_uri", "") else "android.resource://${appCtx.packageName}/raw/adhan_mustafa_oezcan")?.ifEmpty { null }
+        set(v) = sp.edit().putString("adhan_uri", v ?: "").apply()
     var adhanName: String?
-        get() = sp.getString("adhan_name", null)
-        set(v) = sp.edit().putString("adhan_name", v).apply()
+        get() = (if (sp.contains("adhan_name")) sp.getString("adhan_name", "") else "♪ Hafiz Mustafa Özcan")?.ifEmpty { null }
+        set(v) = sp.edit().putString("adhan_name", v ?: "").apply()
 
     /** Individueller Gebetsruf je Gebet (überschreibt den Standard). */
     fun prayerUri(i: Int): String? = sp.getString("adhan_uri_$i", null)
@@ -68,8 +69,8 @@ class Prefs(context: Context) {
      * 2 = Auswahl-Fenster (30 s) mit Start-Knopf – dann kein automatisches Abspielen.
      */
     var adhkarMode: Int
-        get() = if (sp.contains("adhkar_mode")) sp.getInt("adhkar_mode", 1)
-                else if (sp.getBoolean("adhkar_audio_on", true)) 1 else 0
+        get() = if (sp.contains("adhkar_mode")) sp.getInt("adhkar_mode", 0)
+                else if (sp.contains("adhkar_audio_on") && sp.getBoolean("adhkar_audio_on", false)) 1 else 0
         set(v) = sp.edit().putInt("adhkar_mode", v.coerceIn(0, 2)).apply()
     val adhkarAudioOn: Boolean get() = adhkarMode == 1
     /** Adhkar auch abspielen, wenn der Gebetsruf vorzeitig gestoppt wird (sonst endet beides zusammen). */
@@ -110,9 +111,46 @@ class Prefs(context: Context) {
     val mainFactor: Float get() = floatArrayOf(1f, 1.3f, 1.6f)[mainScale.coerceIn(0, 2)]
 
     /** Neues Design (Skin-ID) oder "classic" für die klassischen Designs (Farbe + Stil). */
+    /** Gewähltes Design. Neuinstallation: Mashrabiya · Schwarz. */
     var skin: String
-        get() = sp.getString("skin", "classic") ?: "classic"
+        get() = sp.getString("skin", "mash_black") ?: "mash_black"
         set(v) = sp.edit().putString("skin", v).apply()
+
+    /** Tag/Nacht-Wechsel: ab Fajr [daySkin], ab Maghrib [nightSkin]. */
+    var dayNightOn: Boolean
+        get() = sp.getBoolean("day_night", false)
+        set(v) = sp.edit().putBoolean("day_night", v).apply()
+    var daySkin: String
+        get() = sp.getString("day_skin", "mash_white") ?: "mash_white"
+        set(v) = sp.edit().putString("day_skin", v).apply()
+    var nightSkin: String
+        get() = sp.getString("night_skin", "mash_black") ?: "mash_black"
+        set(v) = sp.edit().putString("night_skin", v).apply()
+
+    /** Das jetzt gültige Design (berücksichtigt den Tag/Nacht-Wechsel). */
+    fun activeSkin(now: java.time.ZonedDateTime = java.time.ZonedDateTime.now()): String {
+        if (!dayNightOn) return skin
+        return try {
+            val t = timesFor(now.toLocalDate(), now.zone)
+            if (!now.isBefore(t[P.FAJR]) && now.isBefore(t[P.MAGHRIB])) daySkin else nightSkin
+        } catch (_: Exception) { skin }
+    }
+
+    /** Schriftgröße im Hadith-/Sure-Bereich: 0 klein, 1 normal, 2 groß, 3 sehr groß. */
+    var hadithSize: Int
+        get() = sp.getInt("hadith_size", 1)
+        set(v) = sp.edit().putInt("hadith_size", v.coerceIn(0, 3)).apply()
+    val hadithFactor: Float get() = floatArrayOf(0.85f, 1f, 1.2f, 1.4f)[hadithSize]
+
+    /** Knöpfe auf der Startseite: 0 immer sichtbar, 1 bei Berührung (10 s). */
+    var buttonsMode: Int
+        get() = sp.getInt("buttons_mode", 0)
+        set(v) = sp.edit().putInt("buttons_mode", v.coerceIn(0, 1)).apply()
+
+    /** Einrichtungs-Assistent abgeschlossen oder übersprungen. */
+    var setupDone: Boolean
+        get() = sp.getBoolean("setup_done", false)
+        set(v) = sp.edit().putBoolean("setup_done", v).apply()
 
     var style: AppStyle
         get() = AppStyle.byId(sp.getString("style", AppStyle.CLASSIC.id))

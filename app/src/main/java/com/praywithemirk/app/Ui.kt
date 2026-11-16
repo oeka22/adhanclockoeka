@@ -111,7 +111,7 @@ object C {
     /** Design anwenden und Fensterfarben/Statusleiste anpassen. */
     @Suppress("DEPRECATION")
     fun applyTo(a: android.app.Activity, t: AppTheme) {
-        val sk = Skins.byId(Prefs(a).skin)
+        val sk = Skins.byId(Prefs(a).activeSkin())
         skin = sk
         if (sk != null) {
             theme = t

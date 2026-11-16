@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -28,14 +29,63 @@ class AdhkarPickActivity : Activity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var countdown: TextView
+    private lateinit var card: LinearLayout
     private var endAt = 0L
+    // Wiedergabe-Ansicht nach dem Antippen
+    private var playing = false
+    private var playStart = 0L
+    private var playDuration = 0L
+    private var remainingView: TextView? = null
+
+    private val finishedReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context, intent: android.content.Intent) { if (!isFinishing) finish() }
+    }
 
     private val tick = object : Runnable {
         override fun run() {
+            val l = Prefs(this@AdhkarPickActivity).lang
+            if (playing) {
+                // Restzeit der laufenden Adhkar-Aufnahme; Klatsch-Erkennung im Dienst einschalten
+                AdhanService.enableClap(this@AdhkarPickActivity)
+                if (playDuration > 0) {
+                    val left = ((playDuration - (System.currentTimeMillis() - playStart)) / 1000).coerceAtLeast(0)
+                    remainingView?.text = S.remainingFmt[l].format("%d:%02d".format(left / 60, left % 60))
+                }
+                handler.postDelayed(this, 1000)
+                return
+            }
             val left = ((endAt - System.currentTimeMillis()) / 1000).coerceAtLeast(0)
-            countdown.text = S.closesIn[Prefs(this@AdhkarPickActivity).lang].format(left)
+            countdown.text = S.closesIn[l].format(left)
             if (left <= 0) finish() else handler.postDelayed(this, 500)
         }
+    }
+
+    /** Nach dem Antippen: Fenster wird zur Wiedergabe-Ansicht mit großem Stopp-Knopf und Restzeit. */
+    private fun startPlaying(prayer: Int, title: String, uri: String) {
+        val prefs = Prefs(this)
+        val l = prefs.lang
+        AdhanService.playAdhkar(this, prayer, uri)
+        playing = true
+        playStart = System.currentTimeMillis()
+        playDuration = try {
+            val mr = android.media.MediaMetadataRetriever()
+            mr.setDataSource(this, android.net.Uri.parse(uri))
+            val d = mr.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+            mr.release(); d
+        } catch (_: Exception) { 0L }
+        card.removeAllViews()
+        card.addView(text("▶  " + S.nowPlaying[l], 15f, C.gold, Fonts.medium))
+        card.addView(text(title, 22f, C.cream, Fonts.medium), lp(top = dp(6)))
+        remainingView = text("", 16f, C.muted, Fonts.light)
+        card.addView(remainingView, lp(top = dp(6)))
+        card.addView(View(this), LinearLayout.LayoutParams(-1, 0, 1f))
+        card.addView(pill("■  " + S.stopAdhkar[l], filled = true) {
+            AdhanService.stop(this, AdhanService.R_BUTTON); finish()
+        }.apply { textSize = 20f; setPadding(dp(24), dp(18), dp(24), dp(18)) }, lp(top = dp(16)))
+        if (prefs.clapToStop) card.addView(text(S.clapHint[l], 13f, C.muted, Fonts.light, Gravity.CENTER), lp(top = dp(8)))
+        card.addView(pill(S.minimize[l]) { finish() }, lp(top = dp(10)))
+        handler.removeCallbacksAndMessages(null)
+        handler.post(tick)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +105,7 @@ class AdhkarPickActivity : Activity() {
             setBackgroundColor(Color.argb(170, 0, 0, 0))
             setOnClickListener { finish() }
         }
-        val card = card(20).apply {
+        card = card(20).apply {
             isClickable = true // Klicks auf die Karte schließen nicht
             background = roundRect(C.bgTop, dp(22).toFloat(), C.gold, dp(1))
         }
@@ -68,10 +118,7 @@ class AdhkarPickActivity : Activity() {
                 setPadding(dp(14), dp(14), dp(14), dp(14))
                 background = roundRect(C.card, dp(14).toFloat(), C.cardStroke, dp(1))
                 clickableRipple(dp(14).toFloat())
-                setOnClickListener {
-                    AdhanService.playAdhkar(this@AdhkarPickActivity, prayer, uri)
-                    finish()
-                }
+                setOnClickListener { startPlaying(prayer, title, uri) }
             }, lp(top = dp(8)))
         }
         // eigene Auswahl (falls gesetzt und nicht ohnehin eingebaut), dann alle eingebauten
@@ -94,9 +141,13 @@ class AdhkarPickActivity : Activity() {
 
         endAt = System.currentTimeMillis() + SHOW_MS
         handler.post(tick)
+        val f = android.content.IntentFilter(AdhanActivity.ACTION_FINISHED)
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(finishedReceiver, f, android.content.Context.RECEIVER_NOT_EXPORTED)
+        else @Suppress("UnspecifiedRegisterReceiverFlag") registerReceiver(finishedReceiver, f)
     }
 
     override fun onDestroy() {
+        try { unregisterReceiver(finishedReceiver) } catch (_: Exception) {}
         handler.removeCallbacksAndMessages(null)
         super.onDestroy()
     }

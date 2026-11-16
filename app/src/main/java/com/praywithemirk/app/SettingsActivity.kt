@@ -28,6 +28,13 @@ import java.time.format.DateTimeFormatter
 
 class SettingsActivity : Activity() {
 
+    companion object {
+        /** Unterseite: 0 = Übersicht, 1 Anzeige & Wanduhr, 2 Gebetszeiten, 3 Gebetsruf, 4 Adhkar, 5 Inhalte & Quellen, 6 System. */
+        const val EXTRA_PAGE = "page"
+    }
+    private val page by lazy { intent.getIntExtra(EXTRA_PAGE, 0) }
+
+
     private lateinit var prefs: Prefs
     private lateinit var col: LinearLayout
     private var scrollY = 0
@@ -85,8 +92,9 @@ class SettingsActivity : Activity() {
             sm.getDefaultSensor(android.hardware.Sensor.TYPE_LIGHT)?.let { sm.registerListener(luxListener, it, android.hardware.SensorManager.SENSOR_DELAY_NORMAL) }
         }
         super.onResume()
-        if (shownSkin.isNotEmpty() && shownSkin != prefs.skin) { shownSkin = prefs.skin; recreate(); return }
-        shownSkin = prefs.skin
+        val act = prefs.activeSkin()
+        if (shownSkin.isNotEmpty() && shownSkin != act) { shownSkin = act; recreate(); return }
+        shownSkin = act
         render()
     }
 
@@ -100,9 +108,11 @@ class SettingsActivity : Activity() {
         head.addView(text("‹", 32f, C.gold, Fonts.light).apply {
             setPadding(dp(4), 0, dp(16), dp(4)); setOnClickListener { finish() }
         })
-        head.addView(text(S.settings[l], 22f, C.cream, Fonts.light))
+        head.addView(text(if (page in 1..6) S.pageTitles[page - 1][l] else S.settings[l], 22f, C.cream, Fonts.light))
         col.addView(head)
 
+        when (page) {
+            1 -> {
         // ---------------- Sprache & Anzeige
         section(S.language[l])
         col.addView(card().apply {
@@ -114,15 +124,19 @@ class SettingsActivity : Activity() {
             addView(switchRow(S.showArabic[prefs.lang], prefs.showArabic) { prefs.showArabic = it }, lp(top = dp(12)))
             addView(switchRow(S.showTranslit[prefs.lang], prefs.showTranslit) { prefs.showTranslit = it }, lp(top = dp(4)))
             addView(switchRow(S.keepScreenOn[prefs.lang], prefs.keepScreenOn) { prefs.keepScreenOn = it })
-            addView(stepper(S.hijriOffset[l], prefs.hijriOffset, -2, 2, 1) { prefs.hijriOffset = it }, lp(top = dp(6)))
+            addView(label(S.hadithSize[l]), lp(top = dp(12)))
+            addView(segmented(S.hadithSizes.map { it[l] }, prefs.hadithSize) { prefs.hadithSize = it; render() }, lp(top = dp(6)))
+            addView(label(S.buttonsMode[l]), lp(top = dp(12)))
+            addView(segmented(S.buttonsModes.map { it[l] }, prefs.buttonsMode) { prefs.buttonsMode = it; render() }, lp(top = dp(6)))
+            addView(text(S.buttonsInfo[l], 12f, C.muted, Fonts.light), lp(top = dp(4)))
         }, lp(top = dp(8)))
 
         // ---------------- Design
         section(S.design[l])
         col.addView(card(14).apply {
-            val cur = Skins.byId(prefs.skin)
+            fun nameOf(id: String) = Skins.byId(id)?.title?.get(l) ?: S.classicDesign[l]
             addView(label(S.currentDesign[l]))
-            addView(text(cur?.title?.get(l) ?: S.classicDesign[l], 17f, C.cream, Fonts.bold), lp(top = dp(2)))
+            addView(text(if (prefs.dayNightOn) "☀ " + nameOf(prefs.daySkin) + "\n☾ " + nameOf(prefs.nightSkin) else nameOf(prefs.skin), 17f, C.cream, Fonts.bold), lp(top = dp(2)))
             addView(text(S.chooseDesign[l], 15f, C.onAccent, Fonts.medium, Gravity.CENTER).apply {
                 background = roundRect(C.gold, dp(16).toFloat())
                 setPadding(dp(12), dp(12), dp(12), dp(12))
@@ -130,6 +144,32 @@ class SettingsActivity : Activity() {
             }, lp(top = dp(10)))
         }, lp(top = dp(8)))
 
+        // ---------------- Nachtmodus
+        section(S.nightSection[l])
+        col.addView(card().apply {
+            addView(text(S.nightInfo[l], 13f, C.muted, Fonts.light))
+            val hasSensor = Dimmer.hasLightSensor(this@SettingsActivity)
+            addView(segmented(S.nightModes.map { it[l] }, prefs.nightMode) { prefs.nightMode = it; render() }, lp(top = dp(12)))
+            if (prefs.nightMode == 2 && !hasSensor) addView(text(S.noLightSensor[l], 13f, C.gold, Fonts.regular), lp(top = dp(8)))
+            if (prefs.nightMode == 2 && hasSensor) {
+                addView(text(S.sensorFound[l], 13f, C.teal, Fonts.regular), lp(top = dp(8)))
+                luxView = text(S.sensorNow[l].format(0) + " …", 15f, C.cream, Fonts.medium)
+                addView(luxView, lp(top = dp(4)))
+                addView(stepper(S.nightLux[l], prefs.nightLux, 1, 100, 1) { prefs.nightLux = it }, lp(top = dp(6)))
+                addView(text(S.nightLuxHint[l], 12f, C.muted, Fonts.light))
+            }
+            if (prefs.nightMode == 1 || (prefs.nightMode == 2 && !hasSensor)) {
+                addView(stepper(S.nightFrom[l], prefs.nightFrom, 0, 23, 1) { prefs.nightFrom = it }, lp(top = dp(8)))
+                addView(stepper(S.nightTo[l], prefs.nightTo, 0, 23, 1) { prefs.nightTo = it })
+            }
+            if (prefs.nightMode != 0) {
+                addView(label(S.nightLevel[l]), lp(top = dp(10)))
+                addView(segmented(S.nightLevels.map { it[l] }, prefs.nightLevel) { prefs.nightLevel = it; render() }, lp(top = dp(6)))
+            }
+        }, lp(top = dp(8)))
+
+            }
+            2 -> {
         // ---------------- Standort
         section(S.location[l])
         col.addView(card().apply {
@@ -228,57 +268,34 @@ class SettingsActivity : Activity() {
                     prefs.setOffset(i, it); changed()
                 })
             }
+            addView(stepper(S.hijriOffset[l], prefs.hijriOffset, -2, 2, 1) { prefs.hijriOffset = it }, lp(top = dp(14)))
         }, lp(top = dp(8)))
-
-        // ---------------- Gebetsruf
+            }
+            3 -> {
+        // ---------------- Gebetsruf: Standard-Ton, dann eine Karte je Gebet
         section(S.adhanSection[l])
         col.addView(card().apply {
-            addView(label(S.adhanFor[l]))
-            for (i in P.SALAH) {
-                addView(switchRow(S.prayerNames[i][l] + "   " + S.prayerArabic[i], prefs.adhanEnabled(i)) {
-                    prefs.setAdhanEnabled(i, it); changed()
-                })
-            }
-            addView(label(S.adhanSound[l]), lp(top = dp(14)))
             addView(text(S.audioHint[l] + " " + S.linkHint[l], 12f, C.muted, Fonts.light))
             addView(text(S.defaultForAll[l], 15f, C.gold, Fonts.medium), lp(top = dp(12)))
             addView(soundRow(-1, prefs.adhanName ?: S.defaultSound[l]), lp(top = dp(4)))
-            addView(label(S.perPrayer[l]), lp(top = dp(16)))
-            addView(text(S.volumeInfo[l], 12f, C.muted, Fonts.light))
-            for (i in P.SALAH) {
-                addView(text(S.prayerNames[i][l] + "   " + S.prayerArabic[i], 15f, C.gold, Fonts.medium), lp(top = dp(12)))
-                addView(soundRow(i, prefs.prayerName(i) ?: S.useDefault[l]), lp(top = dp(4)))
-                addView(volumeSlider(prefs.volume(i)) { v -> prefs.setVolume(i, v) }, lp(top = dp(4)))
-            }
-
-            // Adhkar-Audio nach Fajr/Maghrib
-            addView(label(S.adhkarAudioSection[l]), lp(top = dp(18)))
-            addView(text(S.adhkarAudioInfo[l], 12f, C.muted, Fonts.light))
-            addView(segmented(S.adhkarModes.map { it[l] }, prefs.adhkarMode) { prefs.adhkarMode = it; render() }, lp(top = dp(8)))
-            addView(text(S.adhkarModeInfo[prefs.adhkarMode][l], 12f, C.teal, Fonts.light), lp(top = dp(4)))
-            if (prefs.adhkarMode != 0) {
-                addView(text(S.adhkarMorning[l], 15f, C.gold, Fonts.medium), lp(top = dp(8)))
-                addView(soundRow(ADHKAR_SLOT, prefs.adhkarName(0) ?: S.adhkarNone[l]), lp(top = dp(4)))
-                addView(volumeSlider(prefs.adhkarVolume(0)) { v -> prefs.setAdhkarVolume(0, v) }, lp(top = dp(4)))
-                addView(text(S.adhkarEvening[l], 15f, C.gold, Fonts.medium), lp(top = dp(12)))
-                addView(soundRow(ADHKAR_SLOT + 1, prefs.adhkarName(1) ?: S.adhkarNone[l]), lp(top = dp(4)))
-                addView(volumeSlider(prefs.adhkarVolume(1)) { v -> prefs.setAdhkarVolume(1, v) }, lp(top = dp(4)))
-                if (prefs.adhkarMode == 1) {
-                    addView(switchRow(S.adhkarAfterStop[l], prefs.adhkarAfterStop) { prefs.adhkarAfterStop = it }, lp(top = dp(8)))
-                    addView(text(S.adhkarAfterStopInfo[l], 12f, C.muted, Fonts.light))
+            addView(text(S.volumeInfo[l], 12f, C.muted, Fonts.light), lp(top = dp(10)))
+        }, lp(top = dp(8)))
+        for (i in P.SALAH) {
+            col.addView(card().apply {
+                addView(switchRow(S.prayerNames[i][l] + "   " + (if (prefs.showArabic) S.prayerArabic[i] else ""), prefs.adhanEnabled(i)) {
+                    prefs.setAdhanEnabled(i, it); changed()
+                })
+                if (prefs.adhanEnabled(i)) {
+                    addView(soundRow(i, prefs.prayerName(i) ?: S.useDefault[l]), lp(top = dp(2)))
+                    addView(volumeSlider(prefs.volume(i)) { v -> prefs.setVolume(i, v) }, lp(top = dp(4)))
                 }
-            }
-
+            }, lp(top = dp(8)))
+        }
+        col.addView(card().apply {
             addView(stepper(S.reminderBefore[l], prefs.reminderMinutes, 0, 60, 5) {
                 prefs.reminderMinutes = it; changed()
-            }, lp(top = dp(14)))
+            }, lp(top = dp(0)))
 
-            prefs.lastAdhanEnd.split("|").takeIf { it.size == 3 }?.let { p ->
-                val reason = S.endReasons[p[0].substringBefore(" ")]?.get(l) ?: p[0]
-                val whenTxt = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(p[2].toLongOrNull() ?: 0L))
-                addView(text(S.lastAdhan[l].format(p[1].toIntOrNull() ?: 0, reason + if (p[0].contains(" ")) " " + p[0].substringAfter(" ") else "", whenTxt),
-                    12f, C.muted, Fonts.light), lp(top = dp(10)))
-            }
             addView(switchRow(S.clapSetting[l], prefs.clapToStop) { on ->
                 if (on && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                     requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), reqMicClap)
@@ -316,6 +333,32 @@ class SettingsActivity : Activity() {
                 lp(LinearLayout.LayoutParams.WRAP_CONTENT, top = dp(12)))
         }, lp(top = dp(8)))
 
+            }
+            4 -> {
+        // ---------------- Adhkar nach dem Gebetsruf
+        section(S.adhkarAudioSection[l])
+        col.addView(card().apply {
+            // Adhkar-Audio nach Fajr/Maghrib
+            addView(text(S.adhkarAudioInfo[l], 12f, C.muted, Fonts.light))
+            addView(segmented(S.adhkarModes.map { it[l] }, prefs.adhkarMode) { prefs.adhkarMode = it; render() }, lp(top = dp(8)))
+            addView(text(S.adhkarModeInfo[prefs.adhkarMode][l], 12f, C.teal, Fonts.light), lp(top = dp(4)))
+            if (prefs.adhkarMode != 0) {
+                addView(text(S.adhkarMorning[l], 15f, C.gold, Fonts.medium), lp(top = dp(8)))
+                addView(soundRow(ADHKAR_SLOT, prefs.adhkarName(0) ?: S.adhkarNone[l]), lp(top = dp(4)))
+                addView(volumeSlider(prefs.adhkarVolume(0)) { v -> prefs.setAdhkarVolume(0, v) }, lp(top = dp(4)))
+                addView(text(S.adhkarEvening[l], 15f, C.gold, Fonts.medium), lp(top = dp(12)))
+                addView(soundRow(ADHKAR_SLOT + 1, prefs.adhkarName(1) ?: S.adhkarNone[l]), lp(top = dp(4)))
+                addView(volumeSlider(prefs.adhkarVolume(1)) { v -> prefs.setAdhkarVolume(1, v) }, lp(top = dp(4)))
+                if (prefs.adhkarMode == 1) {
+                    addView(switchRow(S.adhkarAfterStop[l], prefs.adhkarAfterStop) { prefs.adhkarAfterStop = it }, lp(top = dp(8)))
+                    addView(text(S.adhkarAfterStopInfo[l], 12f, C.muted, Fonts.light))
+                }
+            }
+
+        }, lp(top = dp(8)))
+
+            }
+            5 -> {
         // ---------------- Quellen
         section(S.sources[l])
         col.addView(card().apply {
@@ -387,31 +430,8 @@ class SettingsActivity : Activity() {
             }, lp(LinearLayout.LayoutParams.WRAP_CONTENT, top = dp(8)))
         }, lp(top = dp(8)))
 
-        // ---------------- Berechtigungen
-        // ---------------- Nachtmodus
-        section(S.nightSection[l])
-        col.addView(card().apply {
-            addView(text(S.nightInfo[l], 13f, C.muted, Fonts.light))
-            val hasSensor = Dimmer.hasLightSensor(this@SettingsActivity)
-            addView(segmented(S.nightModes.map { it[l] }, prefs.nightMode) { prefs.nightMode = it; render() }, lp(top = dp(12)))
-            if (prefs.nightMode == 2 && !hasSensor) addView(text(S.noLightSensor[l], 13f, C.gold, Fonts.regular), lp(top = dp(8)))
-            if (prefs.nightMode == 2 && hasSensor) {
-                addView(text(S.sensorFound[l], 13f, C.teal, Fonts.regular), lp(top = dp(8)))
-                luxView = text(S.sensorNow[l].format(0) + " …", 15f, C.cream, Fonts.medium)
-                addView(luxView, lp(top = dp(4)))
-                addView(stepper(S.nightLux[l], prefs.nightLux, 1, 100, 1) { prefs.nightLux = it }, lp(top = dp(6)))
-                addView(text(S.nightLuxHint[l], 12f, C.muted, Fonts.light))
             }
-            if (prefs.nightMode == 1 || (prefs.nightMode == 2 && !hasSensor)) {
-                addView(stepper(S.nightFrom[l], prefs.nightFrom, 0, 23, 1) { prefs.nightFrom = it }, lp(top = dp(8)))
-                addView(stepper(S.nightTo[l], prefs.nightTo, 0, 23, 1) { prefs.nightTo = it })
-            }
-            if (prefs.nightMode != 0) {
-                addView(label(S.nightLevel[l]), lp(top = dp(10)))
-                addView(segmented(S.nightLevels.map { it[l] }, prefs.nightLevel) { prefs.nightLevel = it; render() }, lp(top = dp(6)))
-            }
-        }, lp(top = dp(8)))
-
+            6 -> {
         section(S.permissions[l])
         col.addView(card().apply {
             if (Build.VERSION.SDK_INT >= 31) {
@@ -444,6 +464,19 @@ class SettingsActivity : Activity() {
             }, lp(LinearLayout.LayoutParams.WRAP_CONTENT, top = dp(8)))
         }, lp(top = dp(8)))
 
+        col.addView(card().apply {
+            addView(label(S.diagnosis[l]))
+            prefs.lastAdhanEnd.split("|").takeIf { it.size == 3 }?.let { p ->
+                val reason = S.endReasons[p[0].substringBefore(" ")]?.get(l) ?: p[0]
+                val whenTxt = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(p[2].toLongOrNull() ?: 0L))
+                addView(text(S.lastAdhan[l].format(p[1].toIntOrNull() ?: 0, reason + if (p[0].contains(" ")) " " + p[0].substringAfter(" ") else "", whenTxt),
+                    12f, C.muted, Fonts.light), lp(top = dp(10)))
+            }
+            addView(pill("✦  " + S.setupAgain[l]) {
+                prefs.setupDone = false
+                startActivity(Intent(this@SettingsActivity, SetupActivity::class.java))
+            }, lp(LinearLayout.LayoutParams.WRAP_CONTENT, top = dp(10)))
+        }, lp(top = dp(8)))
         // Nächster Gebetsruf
         val next = AlarmScheduler.reschedule(this)
         if (next != null) {
@@ -455,6 +488,30 @@ class SettingsActivity : Activity() {
         }
         col.addView(text("Adhan-Clock-oeka · " + (try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { "" }), 11f, C.faint, Fonts.light, Gravity.CENTER), lp(top = dp(8)))
 
+            }
+            else -> {
+        // ---------------- Übersicht: sechs Themen
+        val tiles = listOf(
+            Triple(1, "◐", S.pageDisplay), Triple(2, "◷", S.pageTimes), Triple(3, "🔔", S.pageAdhan),
+            Triple(4, "✦", S.pageAdhkar), Triple(5, "❖", S.pageContent), Triple(6, "⚙", S.pageSystem),
+        )
+        for ((p, sym, title) in tiles) {
+            col.addView(card(16).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                addView(text(sym, 24f, C.gold, Fonts.regular, Gravity.CENTER), LinearLayout.LayoutParams(dp(44), -2))
+                val tx = LinearLayout(this@SettingsActivity).apply { orientation = LinearLayout.VERTICAL }
+                tx.addView(text(title[l], 17f, C.cream, Fonts.medium))
+                tx.addView(text(S.pageHints[p - 1][l], 12f, C.muted, Fonts.light))
+                addView(tx, LinearLayout.LayoutParams(0, -2, 1f).apply { leftMargin = dp(8) })
+                addView(text("›", 26f, C.gold, Fonts.light))
+                clickableRipple(dp(18).toFloat())
+                setOnClickListener { startActivity(Intent(this@SettingsActivity, SettingsActivity::class.java).putExtra(EXTRA_PAGE, p)) }
+            }, lp(top = dp(10)))
+        }
+
+            }
+        }
         scroll.post { scroll.scrollTo(0, scrollY) }
     }
 

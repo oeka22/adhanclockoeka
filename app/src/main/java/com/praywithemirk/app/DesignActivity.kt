@@ -76,6 +76,30 @@ class DesignActivity : Activity() {
         }
         val classicSel = Skins.byId(prefs.skin) == null
 
+        // ---------------- Tag/Nacht-Wechsel
+        section(S.dayNight[l])
+        col.addView(card(14).apply {
+            addView(text(S.dayNightInfo[l], 13f, C.muted, Fonts.light))
+            addView(segmented(listOf(S.nightModes[0][l], S.dayNight[l]), if (prefs.dayNightOn) 1 else 0) { prefs.dayNightOn = it == 1; apply() }, lp(top = dp(8)))
+            if (prefs.dayNightOn) {
+                fun chooser(label: String, current: String, set: (String) -> Unit) = text("$label:  " + (Skins.byId(current)?.title?.get(l) ?: S.classicDesign[l]) + "  ›", 15f, C.cream, Fonts.medium).apply {
+                    setPadding(dp(12), dp(12), dp(12), dp(12))
+                    background = roundRect(C.card, dp(14).toFloat(), C.cardStroke, dp(1))
+                    clickableRipple(dp(14).toFloat())
+                    setOnClickListener {
+                        val ids = listOf("classic") + Skins.all.map { it.id }
+                        val names = ids.map { Skins.byId(it)?.title?.get(l) ?: S.classicDesign[l] }.toTypedArray()
+                        android.app.AlertDialog.Builder(this@DesignActivity, if (C.light) android.R.style.Theme_Material_Light_Dialog_Alert else android.R.style.Theme_Material_Dialog_Alert)
+                            .setTitle(label)
+                            .setSingleChoiceItems(names, ids.indexOf(current).coerceAtLeast(0)) { d, w -> set(ids[w]); d.dismiss(); apply() }
+                            .show()
+                    }
+                }
+                addView(chooser("☀  " + S.dayDesign[l], prefs.daySkin) { prefs.daySkin = it }, lp(top = dp(10)))
+                addView(chooser("☾  " + S.nightDesign[l], prefs.nightSkin) { prefs.nightSkin = it }, lp(top = dp(8)))
+            }
+        }, lp(top = dp(8)))
+
         // ---------------- Klassisch (das bisherige Design, mit Farben und Stilen)
         section(S.classicDesign[l])
         col.addView(card(14).apply {

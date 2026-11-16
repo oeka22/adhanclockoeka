@@ -46,6 +46,10 @@
             android:parentActivityName=".MainActivity" />
 
         <activity
+            android:name=".SetupActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".DesignActivity"
             android:exported="false"
             android:parentActivityName=".SettingsActivity" />
