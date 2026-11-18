@@ -4,19 +4,20 @@ import java.time.chrono.HijrahDate
 import java.time.temporal.ChronoField
 
 enum class Lang(val id: String, val label: String) {
-    DE("de", "Deutsch"), TR("tr", "Türkçe"), EN("en", "English");
+    DE("de", "Deutsch"), TR("tr", "Türkçe"), EN("en", "English"), AR("ar", "العربية");
 
     companion object {
         fun byId(id: String?): Lang = entries.firstOrNull { it.id == id } ?: DE
     }
 }
 
-/** Ein Text in drei Sprachen. */
+/** Ein Text in vier Sprachen; Arabisch kommt aus [Arabic.map] (Schlüssel = englischer Text). */
 class T(val de: String, val tr: String, val en: String) {
     operator fun get(l: Lang): String = when (l) {
         Lang.DE -> de
         Lang.TR -> tr
         Lang.EN -> en
+        Lang.AR -> Arabic.map[en] ?: en
     }
 }
 
@@ -540,6 +541,7 @@ object S {
             Lang.EN -> "$wd, $mo ${d.dayOfMonth}, ${d.year}"
             Lang.TR -> "${d.dayOfMonth} $mo ${d.year}, $wd"
             Lang.DE -> "$wd, ${d.dayOfMonth}. $mo ${d.year}"
+            Lang.AR -> "$wd، ${d.dayOfMonth} $mo ${d.year}"
         }
     }
 

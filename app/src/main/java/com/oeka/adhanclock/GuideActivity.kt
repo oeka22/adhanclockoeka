@@ -147,9 +147,9 @@ class GuideActivity : Activity() {
         val title = (if (n > 0) "$n.  " else "") + s.title[l]
         box.addView(text(title, 15f, C.gold, Fonts.medium))
         box.addView(text(s.text[l], 14f, C.cream, Fonts.light), lp(top = dp(6)))
-        if (prefs.showArabic) s.arabic?.let { box.addView(arabic(it, 21f), lp(top = dp(10))) }
+        if (prefs.showArabic || l == Lang.AR) s.arabic?.let { box.addView(arabic(it, 21f), lp(top = dp(10))) }
         if (prefs.showTranslit) s.translit?.let { box.addView(text(it, 13f, C.teal, Fonts.italic), lp(top = dp(8))) }
-        s.meaning?.let { box.addView(text(it[l], 13f, C.muted, Fonts.light), lp(top = dp(6))) }
+        if (l != Lang.AR || s.arabic == null) s.meaning?.let { box.addView(text(it[l], 13f, C.muted, Fonts.light), lp(top = dp(6))) }
         return box
     }
 

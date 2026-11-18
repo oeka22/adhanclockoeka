@@ -219,8 +219,9 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putInt("night_level", v).apply()
 
     /** Arabische Schrift anzeigen (Gebetsnamen, Hadith/Sure, Adhkar, Anleitung). */
+    /** Zusätzliche arabische Schrift – bei Sprache Arabisch immer aus (die Oberfläche ist ja arabisch). */
     var showArabic: Boolean
-        get() = sp.getBoolean("arabic", true)
+        get() = lang != Lang.AR && sp.getBoolean("arabic", true)
         set(v) = sp.edit().putBoolean("arabic", v).apply()
 
     var showTranslit: Boolean

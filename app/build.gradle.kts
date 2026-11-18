@@ -15,8 +15,8 @@ android {
         applicationId = "com.oeka.adhanclock"
         minSdk = 26
         targetSdk = 35
-        versionCode = 16
-        versionName = "8.2"
+        versionCode = 17
+        versionName = "8.3"
     }
 
     // Fester Signaturschlüssel: jede neue Version lässt sich über die alte installieren

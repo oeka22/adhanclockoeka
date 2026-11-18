@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import org.json.JSONArray
+import java.util.Locale
 import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
@@ -131,33 +132,78 @@ object MosqueCalendar {
     /** Treffer der Mawaqit-Suche. [km] = Entfernung zum Standort (oder -1). */
     class Found(val name: String, val place: String, val url: String, val km: Double)
 
-    /** Nächste Moscheen auf Mawaqit zum Standort (öffentliche Suche, ohne Anmeldung). */
+    /*
+     * Mawaqit hat 2026 die Suche (api/2.0/mosque/search) privat gemacht – sie liefert ohne Konto-Token
+     * nur noch 401. Öffentlich ist weiterhin die Länderliste api/2.0/mosque/map/{ISO2} (Name, Adresse,
+     * Stadt, Koordinaten, Slug). Daraus berechnen wir selbst die nächsten Moscheen bzw. filtern nach Wörtern.
+     */
+    private val countryCache = HashMap<String, List<JSONObject>>()
+
+    /** Nächste Moscheen auf Mawaqit zum Standort (öffentliche Länderliste, ohne Anmeldung). */
     fun searchNearby(ctx: Context, lat: Double, lng: Double, max: Int, cb: (List<Found>?) -> Unit) =
-        search("https://mawaqit.net/api/2.0/mosque/search?lat=$lat&lon=$lng", lat, lng, max, cb)
+        search(ctx, null, lat, lng, max, cb)
 
-    /** Mawaqit-Suche nach Name oder Stadt. */
+    /** Mawaqit-Suche nach Name, Stadt oder Adresse (im Land des Standorts bzw. des Geräts). */
     fun searchWord(ctx: Context, word: String, lat: Double?, lng: Double?, max: Int, cb: (List<Found>?) -> Unit) =
-        search("https://mawaqit.net/api/2.0/mosque/search?word=" + java.net.URLEncoder.encode(word, "UTF-8"), lat, lng, max, cb)
+        search(ctx, word, lat, lng, max, cb)
 
-    private fun search(url: String, lat: Double?, lng: Double?, max: Int, cb: (List<Found>?) -> Unit) {
+    private fun norm(s: String): String =
+        java.text.Normalizer.normalize(s.lowercase(Locale.ROOT), java.text.Normalizer.Form.NFD)
+            .replace(Regex("\\p{M}+"), "").replace("ß", "ss").replace("ı", "i")
+
+    @Suppress("DEPRECATION")
+    private fun countries(ctx: Context, lat: Double?, lng: Double?): List<String> {
+        val out = LinkedHashSet<String>()
+        if (lat != null && lng != null) try {
+            android.location.Geocoder(ctx.applicationContext, Locale.ENGLISH).getFromLocation(lat, lng, 1)
+                ?.firstOrNull()?.countryCode?.takeIf { it.length == 2 }?.let { out.add(it.uppercase(Locale.ROOT)) }
+        } catch (_: Exception) {}
+        listOf(Locale.getDefault().country, "DE").forEach { if (it.length == 2) out.add(it.uppercase(Locale.ROOT)) }
+        return out.toList()
+    }
+
+    private fun countryList(cc: String): List<JSONObject> = synchronized(countryCache) { countryCache[cc] } ?: run {
+        val txt = download("https://mawaqit.net/api/2.0/mosque/map/$cc").trim()
+        val arr = if (txt.startsWith("[")) JSONArray(txt)
+            else JSONObject(txt).let { o -> o.optJSONArray("data") ?: o.optJSONArray("mosques") ?: o.optJSONArray("results") ?: JSONArray() }
+        val list = (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }
+        synchronized(countryCache) { countryCache[cc] = list }
+        list
+    }
+
+    private fun search(ctx: Context, word: String?, lat: Double?, lng: Double?, max: Int, cb: (List<Found>?) -> Unit) {
         val main = Handler(Looper.getMainLooper())
         Thread {
             val res: List<Found>? = try {
-                val txt = download(url).trim()
-                val arr = if (txt.startsWith("[")) JSONArray(txt)
-                    else JSONObject(txt).let { o -> o.optJSONArray("data") ?: o.optJSONArray("mosques") ?: o.optJSONArray("results") ?: JSONArray() }
-                (0 until arr.length()).mapNotNull { i ->
-                    val o = arr.optJSONObject(i) ?: return@mapNotNull null
-                    val slug = o.optString("slug")
-                    val link = when {
-                        slug.isNotBlank() -> "https://mawaqit.net/de/$slug"
-                        o.optString("url").startsWith("https://") -> o.optString("url")
-                        else -> return@mapNotNull null
-                    }
-                    val la = o.optDouble("latitude", Double.NaN); val lo = o.optDouble("longitude", Double.NaN)
-                    val km = if (lat != null && lng != null && !la.isNaN() && !lo.isNaN()) distKm(lat, lng, la, lo) else -1.0
-                    Found(o.optString("name").ifBlank { o.optString("label", slug) }, o.optString("localisation"), link, km)
-                }.sortedBy { if (it.km < 0) Double.MAX_VALUE else it.km }.take(max)
+                val ccs = countries(ctx, lat, lng)
+                // Ohne Wort: nur das Land des Standorts (erstes), sonst auch das Geräte-Land
+                val use = if (word == null) ccs.take(1) else ccs
+                var anyOk = false
+                val rows = ArrayList<JSONObject>()
+                for (cc in use) try { rows += countryList(cc); anyOk = true } catch (_: Exception) {}
+                if (!anyOk) null else {
+                    val tokens = word?.let { norm(it).split(Regex("\\s+")).filter { t -> t.isNotBlank() } }.orEmpty()
+                    rows.asSequence().mapNotNull { o ->
+                        val slug = o.optString("slug")
+                        val link = when {
+                            slug.isNotBlank() -> "https://mawaqit.net/de/$slug"
+                            o.optString("url").startsWith("https://") -> o.optString("url")
+                            else -> return@mapNotNull null
+                        }
+                        val name = o.optString("name").ifBlank { o.optString("label", slug) }
+                        val city = o.optString("city")
+                        val addr = o.optString("address").ifBlank { o.optString("localisation") }
+                        if (tokens.isNotEmpty()) {
+                            val hay = norm("$name $city $addr ${o.optString("zipcode")} $slug")
+                            if (!tokens.all { hay.contains(it) }) return@mapNotNull null
+                        }
+                        val la = o.optDouble("lat", o.optDouble("latitude", Double.NaN))
+                        val lo = o.optDouble("lng", o.optDouble("longitude", Double.NaN))
+                        val km = if (lat != null && lng != null && !la.isNaN() && !lo.isNaN()) distKm(lat, lng, la, lo) else -1.0
+                        val place = listOf(addr, (o.optString("zipcode") + " " + city).trim()).filter { it.isNotBlank() }.distinct().joinToString(", ")
+                        Found(name, place, link, km)
+                    }.distinctBy { it.url }.sortedBy { if (it.km < 0) Double.MAX_VALUE else it.km }.take(max).toList()
+                }
             } catch (_: Exception) { null }
             main.post { cb(res) }
         }.start()

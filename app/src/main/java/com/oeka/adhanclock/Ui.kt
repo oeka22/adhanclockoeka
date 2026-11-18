@@ -111,6 +111,8 @@ object C {
     /** Design anwenden und Fensterfarben/Statusleiste anpassen. */
     @Suppress("DEPRECATION")
     fun applyTo(a: android.app.Activity, t: AppTheme) {
+        // Arabisch: Oberfläche von rechts nach links
+        a.window.decorView.layoutDirection = if (Prefs(a).lang == Lang.AR) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
         val sk = Skins.byId(Prefs(a).activeSkin())
         skin = sk
         if (sk != null) {

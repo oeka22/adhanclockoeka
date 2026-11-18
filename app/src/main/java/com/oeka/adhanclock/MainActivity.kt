@@ -550,7 +550,8 @@ class MainActivity : Activity() {
             impulseBox.addView(text(S.allSourcesOff[l], 14f * s, C.muted, Fonts.light), lp(top = dp(10)))
             return
         }
-        impulseBox.addView(text(item.meaning[l], (if (wide) 27f else 15f) * s, C.cream, SkinFonts.body()).apply { setLineSpacing(0f, 1.25f) },
+        if (l == Lang.AR && item.arabic.isNotBlank()) impulseBox.addView(arabic(item.arabic, (if (wide) 30f else 18f) * s), lp(top = dp((if (wide) 10f else 6f) * s)))
+        else impulseBox.addView(text(item.meaning[l], (if (wide) 27f else 15f) * s, C.cream, SkinFonts.body()).apply { setLineSpacing(0f, 1.25f) },
             lp(top = dp((if (wide) 10f else 6f) * s)))
         if (item.arabic.isNotBlank() && prefs.showArabic) impulseBox.addView(arabic(item.arabic, (if (wide) 30f else 18f) * s), lp(top = dp(8f * s)))
         if (prefs.showTranslit && item.translit != null) impulseBox.addView(text(item.translit, (if (wide) 17f else 12f) * s, C.teal, Fonts.italic), lp(top = dp(6f * s)))
@@ -808,8 +809,11 @@ class MainActivity : Activity() {
         if (prefs.showTranslit && item.translit != null) {
             impulseBox.addView(text(item.translit, 13f * s, C.teal, Fonts.italic), lp(top = dp(8)))
         }
-        impulseBox.addView(divider())
-        impulseBox.addView(text(item.meaning[l], 15f * s, C.cream, Fonts.regular))
+        if (l == Lang.AR && item.arabic.isNotBlank()) impulseBox.addView(arabic(item.arabic, 21f * s), lp(top = dp(8)))
+        else {
+            impulseBox.addView(divider())
+            impulseBox.addView(text(item.meaning[l], 15f * s, C.cream, Fonts.regular))
+        }
         impulseBox.addView(text("— " + item.source, 11f * s, C.muted, Fonts.medium, Gravity.END), lp(top = dp(8)))
     }
 

@@ -121,7 +121,7 @@ class SettingsActivity : Activity() {
                 Notifications.ensureChannels(this@SettingsActivity)
                 render()
             })
-            addView(switchRow(S.showArabic[prefs.lang], prefs.showArabic) { prefs.showArabic = it }, lp(top = dp(12)))
+            if (prefs.lang != Lang.AR) addView(switchRow(S.showArabic[prefs.lang], prefs.showArabic) { prefs.showArabic = it }, lp(top = dp(12)))
             addView(switchRow(S.showTranslit[prefs.lang], prefs.showTranslit) { prefs.showTranslit = it }, lp(top = dp(4)))
             addView(switchRow(S.keepScreenOn[prefs.lang], prefs.keepScreenOn) { prefs.keepScreenOn = it })
             addView(label(S.hadithSize[l]), lp(top = dp(12)))

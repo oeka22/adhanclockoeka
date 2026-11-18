@@ -3,6 +3,10 @@
 Ruhige Gebetsuhr mit großer Uhr, Countdown-Ring bis zum nächsten Gebet, Gebetsruf (Adhan)
 zur Gebetszeit, Sunnah-Adhkar zu jedem Gebet und zweimal täglich einem Hadith bzw. einer Koranstelle.
 
+## Neu in Version 8.3
+- **Sprache Arabisch** (العربية): ganze Oberfläche auf Arabisch, von rechts nach links. Die zusätzliche arabische Schrift ist dann ausgeblendet (Schalter verschwindet); Hadith, Adhkar und Gebetsanleitung zeigen den arabischen Originaltext.
+- **Mawaqit-Suche repariert:** Mawaqit hat seine Such-API privat gemacht (401 ohne Token). Die App nutzt jetzt die öffentliche Länderliste von Mawaqit und berechnet die nächsten Moscheen selbst; die Wortsuche findet Name, Stadt, PLZ oder Adresse.
+
 ## Neu in Version 8.2
 - **Neue Aufnahmen**: 7 Gebetsrufe (Standard Hafiz Mustafa Özcan), 2 Morgen- und 2 Abend-Adhkar.
 - **Zufall**: Zufälliger Gebetsruf und zufälliges Adhkar (Einstellungen › Gebetsruf bzw. Adhkar), nie zweimal hintereinander dasselbe.

@@ -130,9 +130,9 @@ class DhikrActivity : Activity() {
     private fun dhikrCard(d: Dhikr): View {
         val l = prefs.lang
         val box = card()
-        if (prefs.showArabic) box.addView(arabic(d.arabic, 21f))
+        if (prefs.showArabic || l == Lang.AR) box.addView(arabic(d.arabic, 21f))
         if (prefs.showTranslit) box.addView(text(d.translit, 14f, C.teal, Fonts.italic), lp(top = dp(10)))
-        box.addView(text(d.meaning[l], 15f, C.cream, Fonts.light), lp(top = dp(10)))
+        if (l != Lang.AR) box.addView(text(d.meaning[l], 15f, C.cream, Fonts.light), lp(top = dp(10)))
         d.note?.let { box.addView(text(it[l], 13f, C.muted, Fonts.italic), lp(top = dp(8))) }
 
         val foot = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
