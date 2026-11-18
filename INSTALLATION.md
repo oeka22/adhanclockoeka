@@ -1,5 +1,6 @@
 # Adhan-Clock-oeka auf dem Android-Handy installieren
 
+
 Es gibt zwei Wege. **Weg A** braucht nur einen Browser, **Weg B** Android Studio auf dem PC.
 
 ---
@@ -11,25 +12,25 @@ GitHub baut die App kostenlos in der Cloud. Danach lädst du sie direkt aufs Han
 ### 1. Projekt hochladen (einmalig, ca. 5 Minuten)
 1. Auf **github.com** ein kostenloses Konto anlegen und anmelden.
 2. Oben rechts **＋ › New repository** wählen.
-   Name: `praywithemirk`, Sichtbarkeit: **Public** (dann ist die Download-Seite ohne Anmeldung erreichbar)
+   Name: z. B. `adhanclockoeka`, Sichtbarkeit: **Public** (dann ist die Download-Seite ohne Anmeldung erreichbar)
    oder **Private** (dann musst du auf dem Handy bei GitHub angemeldet sein).
    Auf **Create repository** klicken.
 3. Auf der neuen Seite den Link **„uploading an existing file“** anklicken.
-4. `PrayWithEmirK.zip` auf dem PC entpacken, den Ordner `PrayWithEmirK` öffnen und **seinen gesamten Inhalt**
+4. `AdhanClockOeka.zip` auf dem PC entpacken, den Ordner `AdhanClockOeka` öffnen und **seinen gesamten Inhalt**
    (alle Dateien und Ordner, auch `.github`) in das Browserfenster ziehen.
    > Tipp: Der Ordner `.github` ist unter Windows evtl. ausgeblendet. Im Explorer
    > *Ansicht › Anzeigen › Ausgeblendete Elemente* einschalten.
 5. Unten auf **Commit changes** klicken.
 
 ### 2. Warten, bis die App gebaut ist (ca. 5 Minuten)
-- Oben auf den Reiter **Actions** klicken. Der Lauf „Pray with Emir K. – APK bauen“ startet automatisch.
+- Oben auf den Reiter **Actions** klicken. Der Lauf „Adhan-Clock-oeka – APK bauen“ startet automatisch.
 - Fertig, wenn ein grüner Haken ✓ erscheint.
-- Falls kein Lauf startet: links „Pray with Emir K. – APK bauen“ wählen › **Run workflow**.
+- Falls kein Lauf startet: links „Adhan-Clock-oeka – APK bauen“ wählen › **Run workflow**.
 
 ### 3. Auf dem Handy installieren
 1. Auf dem Handy im Browser öffnen:
-   `https://github.com/DEIN-NAME/praywithemirk/releases/latest`
-2. **PrayWithEmirK.apk** antippen und herunterladen.
+   `https://github.com/DEIN-NAME/REPO-NAME/releases/latest`
+2. **AdhanClockOeka.apk** antippen und herunterladen.
 3. Die heruntergeladene Datei öffnen. Android fragt einmalig, ob der Browser
    **„Apps aus unbekannten Quellen installieren“** darf → **Erlauben**, zurück, **Installieren**.
 4. Falls Google Play Protect warnt („Unbekannte App“): **Trotzdem installieren** wählen.
@@ -48,7 +49,7 @@ Neue Dateien ins Repository hochladen → GitHub baut automatisch neu → auf de
    *Einstellungen › Telefoninfo › Softwareinformationen › 7× auf „Build-Nummer“ tippen.*
 3. In *Einstellungen › Entwickleroptionen* **USB-Debugging** einschalten.
 4. Handy per USB anschließen und die Nachfrage „USB-Debugging zulassen?“ bestätigen.
-5. In Android Studio *File › Open* → Ordner `PrayWithEmirK` öffnen, Gradle-Sync abwarten.
+5. In Android Studio *File › Open* → Ordner `AdhanClockOeka` öffnen, Gradle-Sync abwarten.
 6. Oben das Handy auswählen und **Run ▶** drücken. Die App wird installiert und startet.
 
 Alternativ ohne Kabel: *Build › Generate App Bundles or APKs › Build APK(s)* – die Datei

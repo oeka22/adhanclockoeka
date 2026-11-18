@@ -3,6 +3,19 @@
 Ruhige Gebetsuhr mit großer Uhr, Countdown-Ring bis zum nächsten Gebet, Gebetsruf (Adhan)
 zur Gebetszeit, Sunnah-Adhkar zu jedem Gebet und zweimal täglich einem Hadith bzw. einer Koranstelle.
 
+## Neu in Version 8.2
+- **Neue Aufnahmen**: 7 Gebetsrufe (Standard Hafiz Mustafa Özcan), 2 Morgen- und 2 Abend-Adhkar.
+- **Zufall**: Zufälliger Gebetsruf und zufälliges Adhkar (Einstellungen › Gebetsruf bzw. Adhkar), nie zweimal hintereinander dasselbe.
+- Vorschlag „Adhan (Wikipedia)“ entfernt.
+- Projekt, Code-Paket, Signaturschlüssel-Datei und APK heißen jetzt durchgehend AdhanClockOeka / com.oeka.adhanclock (gleicher Schlüssel – Updates funktionieren weiter).
+
+## Neu in Version 8.1
+- **Freigaben** an einer Stelle (Einstellungen › System und Assistent): Benachrichtigungen, exakte Wecker, Vollbild, Standort, Mikrofon, Akku – jeweils mit Status und Knopf.
+- **Assistent** mit 5 Schritten: Sprache → Standort (GPS, automatisch an/aus, Stadtsuche) mit den **4 nächsten Mawaqit-Moscheen** zum Ankreuzen → Gebetsruf → Freigaben (inkl. Klatschen) → Design.
+- **Moschee-Kalender**: „Moscheen in der Nähe“ und Suche nach Name/Stadt (Mawaqit), Mehrfachauswahl in „Meine Moscheen“.
+- **Glocke** beim Gebetsruf 40 Sekunden.
+- **Hadith-Schriftgröße**: Sehr klein · Klein · Mittel · Normal · Groß.
+
 ## Neu in Version 8.0
 - **Einrichtungs-Assistent** beim ersten Start: Sprache → Standort/Moschee → Gebetsruf & Lautstärke → Design (überspringbar, später unter Einstellungen › System erneut startbar).
 - **Einstellungen als Übersicht** mit 6 Themen: Anzeige & Wanduhr · Gebetszeiten · Gebetsruf · Adhkar · Inhalte & Quellen · System.
@@ -79,7 +92,7 @@ Schritt-für-Schritt-Anleitung: **INSTALLATION.md** (über GitHub ohne PC-Instal
 
 ## Projektstruktur
 ```
-app/src/main/java/com/praywithemirk/app/
+app/src/main/java/com/oeka/adhanclock/
   PrayTimes.kt        Berechnung der Gebetszeiten
   Schedule.kt         nächstes/letztes Gebet
   AlarmScheduler.kt   Planung der Alarme

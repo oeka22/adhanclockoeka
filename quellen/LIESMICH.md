@@ -1,4 +1,4 @@
-# Eigene Quellen für „Pray with Emir K.“
+# Eigene Quellen für „Adhan-Clock-oeka“
 
 In der App unter *Einstellungen › Quellen › Quelle per URL hinzufügen* eine **https-Adresse** eintragen.
 Die App lädt die Datei herunter und nimmt die Einträge in den Tagesimpuls auf (wöchentlich automatisch aktualisiert).
@@ -6,7 +6,7 @@ Die App lädt die Datei herunter und nimmt die Einträge in den Tagesimpuls auf 
 ## Beispiel direkt nutzen
 Wenn dieses Projekt auf GitHub liegt, funktioniert z. B.:
 
-    https://raw.githubusercontent.com/oeka22/praywithemirk/main/quellen/beispiel.json
+    https://raw.githubusercontent.com/oeka22/REPO-NAME/main/quellen/beispiel.json
 
 ## Formate
 - **JSON** (empfohlen): Liste von Einträgen mit `ar` (Arabisch, optional), `de`, `tr`, `en` (mind. eins) und `source`.

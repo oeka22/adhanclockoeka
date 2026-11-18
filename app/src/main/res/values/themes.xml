@@ -4,7 +4,7 @@
     <color name="gold">#D9B77C</color>
     <color name="cream">#F3EBDD</color>
 
-    <style name="Theme.PrayWithEmirK" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.AdhanClock" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/night</item>
         <item name="android:statusBarColor">@color/night</item>
         <item name="android:navigationBarColor">@color/night</item>
