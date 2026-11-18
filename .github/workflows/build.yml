@@ -31,19 +31,19 @@ jobs:
       - name: APK bauen
         run: |
           gradle assembleRelease --no-daemon --stacktrace
-          cp app/build/outputs/apk/release/app-release.apk PrayWithEmirK.apk
+          cp app/build/outputs/apk/release/*.apk AdhanClockOeka.apk
 
       - name: Als Artefakt speichern
         uses: actions/upload-artifact@v4
         with:
-          name: PrayWithEmirK-apk
-          path: PrayWithEmirK.apk
+          name: AdhanClockOeka-apk
+          path: AdhanClockOeka.apk
 
       - name: Release aktualisieren
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: Adhan-Clock-oeka – neueste Version
-          body: "Zum Installieren: PrayWithEmirK.apk antippen, herunterladen und öffnen."
-          files: PrayWithEmirK.apk
+          body: "Zum Installieren: AdhanClockOeka.apk antippen, herunterladen und öffnen."
+          files: AdhanClockOeka.apk
           make_latest: true
